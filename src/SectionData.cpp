@@ -1,13 +1,13 @@
 #include "SectionData.h"
 
-AppType appType;
+AppType Type;
 
-void SetAppType(AppType Tyoe){
-    appType = Tyoe;
+void SetAppType(AppType tyoe){
+    Type = tyoe;
 }
 
 AppType GetAppType(){
-    return appType;
+    return Type;
 }
 
-void ReadProject(const string &ProjectFile);
+void ReadProject(const string &projectfile);

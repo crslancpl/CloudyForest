@@ -1,18 +1,23 @@
 #include "FileData.h"
 #include "../FileManager/FileManager.h"
+#include <cstdio>
 #include <vector>
 #include <memory>
 
 /* CFFile */
 vector<shared_ptr<CFFile>> CFFile::ProcessedFile = {};
+map<string,CFFileType> CFFile::PendingFiles = {};
 
-void CFFile::ProcessFile(const string &FilePath, CFFileType FileType){
-    if(CheckIfProcessed(FilePath)){
+void CFFile::ProcessFile(const string &filepath, CFFileType filetype){
+    if(CheckIfProcessed(filepath)){
         // Processed
+        printf("%s processed\n", filepath.c_str());
         return;
     }
 
-    shared_ptr<CFFile> cf = make_shared<CFFile>(FilePath, FileType);
+    shared_ptr<CFFile> cf = make_shared<CFFile>();
+    ProcessedFile.push_back(cf);
+    cf->Get(filepath, filetype);
 }
 
 bool CFFile::CheckIfProcessed(const string &filepath){
@@ -24,7 +29,9 @@ bool CFFile::CheckIfProcessed(const string &filepath){
     return false;
 }
 
-CFFile::CFFile(const string&filepath, CFFileType filetype){
+void CFFile::Get(const string &filepath, CFFileType filetype){
     FilePath = filepath;
-    RequestFile(filepath);
+    PendingFiles.insert({filepath,filetype});
+    printf("%s getting\n", filepath.c_str());
+    RequestFile(filepath.c_str());
 }

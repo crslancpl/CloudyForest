@@ -1,8 +1,13 @@
+/*
+ * FileData will Load the file and let Reader to read it
+ */
+
 #ifndef CODEDATA
 #define CODEDATA
 
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 
 using namespace std;
@@ -13,12 +18,14 @@ enum class CFFileType{
 
 class CFFile{
     public:
+    static map<string,CFFileType> PendingFiles;
     static void ProcessFile(const string &filepath, CFFileType filetype);
     static vector<shared_ptr<CFFile>> ProcessedFile;
     static bool CheckIfProcessed(const string &filename);
 
-    CFFile(const string&Fflepath, CFFileType filetype);
+    void Get(const string &filepath, CFFileType filetype);
     string FilePath;
+    vector<string> Codes;
 };
 
 #endif

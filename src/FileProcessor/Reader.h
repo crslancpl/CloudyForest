@@ -2,9 +2,12 @@
 #define READER
 
 #include <sstream>
+#include <string>
 
 using namespace std;
 
-bool ReadFile(const stringstream &Content);
+bool ReadFile(stringstream &content);
+
+void GetCodes(const char &c);
 
 #endif

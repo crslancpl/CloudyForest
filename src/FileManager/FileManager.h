@@ -1,5 +1,11 @@
+/*
+ * FileManager will Get the file for FileData
+ */
+
 #ifndef FILEMANAGER
 #define FILEMANAGER
+
+#include "../FileProcessor/FileData.h"
 
 #include <string>
 #include <fstream>
@@ -8,10 +14,14 @@
 
 using namespace std;
 
+void RequestFile(const char *filepath);
 
+void SetRequestFileFunc(void (*requestFunc)(const char*));
 
-void RespondFile(const string &Content, bool IsPath);
+void ReqLocalFile(const char *filepath);
 
-stringstream ReadContent(const string &PathOrContent, bool IsPath);
+void RespondFile(const string &filepath,const string &content, bool ispath);
+
+stringstream ReadContent(const string &pathorcontent, bool ispath);
 
 #endif

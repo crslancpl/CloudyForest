@@ -8,5 +8,5 @@ using namespace std;
 void StartAsServer();
 void StartAsClient();
 void CompileProject();
-void QuickCompile(const string &FilePath);
+void QuickCompile(const string &filepath);
 #endif

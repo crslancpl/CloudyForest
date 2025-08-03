@@ -1,6 +1,7 @@
 #include "CFBackend.h"
 #include "FileProcessor/FileData.h"
 #include "SectionData.h"
+#include "FileManager/FileManager.h"
 
 #include <iostream>
 
@@ -12,7 +13,7 @@ void StartAsServer(){
     cout << "Enter the port to listen: ";
     int Port;
     cin >> Port;
-    ListenToPort();
+    //ListenToPort();
 }
 
 void StartAsClient(){
@@ -21,17 +22,18 @@ void StartAsClient(){
     cout<<"Enter the url to listen: ";
     string url;
     cin >> url;
-    TellServer();
+    //TellServer();
 }
 
 void CompileProject(){
     SetAppType(AppType::Compiler);
+    SetRequestFileFunc(NULL);
     cout<<"Enter the path of CFProject: ";
     string Path;
     cin >> Path;
-    ReadProject
+    CFFile::ProcessFile(Path, CFFileType::Project);
 }
 
-void QuickCompile(const string &FilePath){
+void QuickCompile(const string &filepath){
     SetAppType(AppType::Compiler);
 }
