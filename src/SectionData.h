@@ -9,10 +9,14 @@ enum class AppType{
     Embed, Server, Compiler, Client
 };
 
+class Project{
+    public:
+};
+
 void SetAppType(AppType type);
 
 AppType GetAppType();
 
-void ReadProject(const string &projectfile);
+void SetProject(const string &projectfile);
 
 #endif

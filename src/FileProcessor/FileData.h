@@ -5,6 +5,7 @@
 #ifndef CODEDATA
 #define CODEDATA
 
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -13,19 +14,22 @@
 using namespace std;
 
 enum class CFFileType{
-    Project, SourceCode
+    None, Template, Project, SourceCode
 };
 
 class CFFile{
     public:
-    static map<string,CFFileType> PendingFiles;
     static void ProcessFile(const string &filepath, CFFileType filetype);
     static vector<shared_ptr<CFFile>> ProcessedFile;
     static bool CheckIfProcessed(const string &filename);
+    static shared_ptr<CFFile> FindCFFile(const string &filename);
 
+    stringstream FileContent;
     void Get(const string &filepath, CFFileType filetype);
+    void Read();
+    CFFileType FileType;
     string FilePath;
-    vector<string> Codes;
+    vector<pair<int,string>> Codes;
 };
 
 #endif

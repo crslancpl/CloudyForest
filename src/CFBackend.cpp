@@ -36,4 +36,6 @@ void CompileProject(){
 
 void QuickCompile(const string &filepath){
     SetAppType(AppType::Compiler);
+    SetRequestFileFunc(NULL);
+    CFFile::ProcessFile(filepath, CFFileType::Project);
 }

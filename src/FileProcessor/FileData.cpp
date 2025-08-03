@@ -1,12 +1,13 @@
 #include "FileData.h"
 #include "../FileManager/FileManager.h"
+#include "Interpret.h"
+#include "Reader.h"
 #include <cstdio>
 #include <vector>
 #include <memory>
 
 /* CFFile */
 vector<shared_ptr<CFFile>> CFFile::ProcessedFile = {};
-map<string,CFFileType> CFFile::PendingFiles = {};
 
 void CFFile::ProcessFile(const string &filepath, CFFileType filetype){
     if(CheckIfProcessed(filepath)){
@@ -29,9 +30,33 @@ bool CFFile::CheckIfProcessed(const string &filepath){
     return false;
 }
 
+shared_ptr<CFFile> CFFile::FindCFFile(const string &filename){
+    for (shared_ptr<CFFile> file : ProcessedFile) {
+        if(file->FilePath == filename){
+            return file;
+        }
+    }
+    return NULL;
+}
+
 void CFFile::Get(const string &filepath, CFFileType filetype){
     FilePath = filepath;
-    PendingFiles.insert({filepath,filetype});
-    printf("%s getting\n", filepath.c_str());
+    FileType = filetype;
     RequestFile(filepath.c_str());
+}
+
+void CFFile::Read(){
+    Reader r;
+    switch (FileType) {
+        case CFFileType::Project:
+            r.ReadFile(this,false);
+            CFProjectInterp(this);
+            break;
+        case CFFileType::Template:
+            r.ReadFile(this,false);
+            CFTemplateInterp(this);
+            break;
+        default:
+            break;
+    }
 }

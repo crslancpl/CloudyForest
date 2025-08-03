@@ -24,6 +24,6 @@ int main(int argcount, char **args){
         CompileProject();
     }else{
         // CloudForest filename
-        //
+        QuickCompile(args[1]);
     }
 }

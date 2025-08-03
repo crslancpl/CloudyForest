@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <memory>
 
 using namespace std;
 
@@ -22,6 +23,6 @@ void ReqLocalFile(const char *filepath);
 
 void RespondFile(const string &filepath,const string &content, bool ispath);
 
-stringstream ReadContent(const string &pathorcontent, bool ispath);
+void ReadContent(shared_ptr<CFFile> f,const string &pathorcontent, bool ispath);
 
 #endif

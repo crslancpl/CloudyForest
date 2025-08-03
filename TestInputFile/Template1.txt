@@ -1,0 +1,10 @@
+#Type
+var function int char class string
+
+#definition Type
+@Type {TypeName}
+@Type {TypeName}  = {TypeValue}
+
+#Function
+@Type {FunctionName} ( {FunctionParameters} )
+{FunctionName} ( {FunctionParameters} )
