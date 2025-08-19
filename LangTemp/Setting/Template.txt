@@ -1,0 +1,2 @@
+#TRIMCHAR FALSE
+{property} {type}

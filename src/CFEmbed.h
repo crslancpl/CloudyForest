@@ -1,11 +1,10 @@
 #ifndef EMBED
 #define EMBED
 
-#include "FileManager/FileManager.h"
 extern "C" {
 
 enum MessageType:char{
-    CONNECT, DRAW, ERROR, WARN, INFO, DOC, FILEREQ, FILERESP
+    CONNECT, DRAW, ERROR, WARN, INFO, DOC, FILEREQ, FILERESP, LANG, ENTRYFILE, RELOAD
 };
 
 /*
@@ -18,7 +17,7 @@ typedef struct Message{
 }Message;
 
 typedef struct Connect{
-    void (*bridge)(const Message* m);
+    void (*bridge)(Message* m);
 }Connect ;
 
 typedef struct FileRequest{
@@ -31,11 +30,30 @@ typedef struct FileRespond{
     const char* Content;// can be path or whole file
 }FileRespond;
 
-void emb_Send_Message_To_CF(const Message* mes);
+typedef struct Lang{
+    char* LangName;
+}Lang;
 
-void emb_Connect(void (*func)(const Message*));
+typedef struct Entry{
+    char* FileName;
+}Entry;
 
-void emb_Send_Message(const Message *m);
+enum t{
+    CF_TYPE, CF_KEYWORD, CF_FUNCTIONNAME, CF_NONE
+};
+
+typedef struct Highlight{
+    char* file;
+    int startpos;
+    int endpos;
+    t type;
+}Highlight;
+
+void emb_Send_Message_To_CF(Message* mes);
+
+void emb_Connect(void (*func)(Message*));
+
+void emb_Send_Message(Message *m);
 
 void emb_Request_File(const char* filepath);
 

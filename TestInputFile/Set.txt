@@ -1,0 +1,4 @@
+editarea
+- tabbut
+-- type => Tab Space
+-- char => #num

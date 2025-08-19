@@ -1,3 +1,5 @@
-#dddd
-F"dddd\""
-//dddd ddddddddd
+function a(){
+    var b;
+    b = "b";
+    return b;
+}

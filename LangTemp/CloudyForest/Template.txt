@@ -1,5 +1,16 @@
+#SingleLineComment
+//
+
+#MultiLineCommentStart
+/*
+#MultiLineCommentEnd
+*/
+
 #Type
 var function int char class string
+
+#Keyword
+return if while get set
 
 #definition Type
 @Type {TypeName}

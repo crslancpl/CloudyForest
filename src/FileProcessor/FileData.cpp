@@ -56,6 +56,10 @@ void CFFile::Read(){
             r.ReadFile(this,false);
             CFTemplateInterp(this);
             break;
+        case CFFileType::SourceCode:
+            r.ReadFile(this, true);
+            CFLangInterp(this);
+            break;
         default:
             break;
     }

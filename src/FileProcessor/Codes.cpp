@@ -1,8 +1,8 @@
-#include "Characters.h"
+#include "Codes.h"
 
 
+#include <cstdio>
 #include <map>
-
 
 map< string, int> KeywordsTypes;
 map< string, int> Keywords;
@@ -35,11 +35,23 @@ bool StartWith(const string &Text, const string &Pattern){
     return true;
 }
 
+bool EndWith(const string &Text, const string &Pattern){
+    if(Text.length() < Pattern.length()) return false;
+    for(int i = 0; i < Pattern.length(); i++){
+        if(Text[Text.length()-1 - i] != Pattern[Pattern.length()-1 - i])return false;
+    }
+    return true;
+}
+
 void AddCFCode(const string &Keyword, unsigned short Code){
-    pair<string, int> P;
-    P.first = Keyword;
-    P.second = Code;
-    KeywordsTypes.insert(KeywordsTypes.end(), P);
+    KeywordsTypes.emplace(Keyword, Code);
+    if(IsAlphabetChar(Keyword[0])){
+        // String keyword
+        Keywords.emplace(Keyword, Code);
+    }else{
+        // Characters keyword
+        CharKeywords.emplace(Keyword, Code);
+    }
 }
 
 void AddCustKeyword(const string &Code , const string &Keyword){
@@ -75,7 +87,6 @@ int GetCodeFromKeyword(const string &Keyword){
     i = CharKeywords.find(Keyword);
     if(i != CharKeywords.end()){
         //It is a keyword
-        // cout <<(int) i ->second << endl;
         return i->second;
     }
     //////

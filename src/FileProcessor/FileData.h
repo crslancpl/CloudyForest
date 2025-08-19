@@ -17,6 +17,20 @@ enum class CFFileType{
     None, Template, Project, SourceCode
 };
 
+enum class CFCodeType{
+    String, Number, Type, Unknown, LangKeyWord
+};
+
+class CFCode{
+    public:
+    int StartPos;
+    int EndPos;
+    int Line;
+    int IntCode;
+    CFCodeType CodeType;
+    string Content;
+};
+
 class CFFile{
     public:
     static void ProcessFile(const string &filepath, CFFileType filetype);
@@ -29,7 +43,7 @@ class CFFile{
     void Read();
     CFFileType FileType;
     string FilePath;
-    vector<pair<int,string>> Codes;
+    vector<CFCode> Codes;
 };
 
 #endif

@@ -1,6 +1,5 @@
-#Name "Test"
-#Version "1.0.0"
+#Name Test
+#Version 1.0.0
 #Description "This is a sample project file."
-#Language "CloudyForest"
-#Template TestInputFile/Template1.txt
-#entryFile "T1.txt"
+#Language CloudyForest
+#EntryFile T1.txt

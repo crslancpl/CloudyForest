@@ -6,8 +6,10 @@
 
 #include "FileData.h"
 
+void CFProjectInterp(CFFile *F);
+
 void CFTemplateInterp(CFFile *F);
 
-void CFProjectInterp(CFFile *F);
+void CFLangInterp(CFFile *F);
 
 #endif

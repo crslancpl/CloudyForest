@@ -1,0 +1,2 @@
+# Type
+void int char float long short class

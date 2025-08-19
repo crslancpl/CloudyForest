@@ -1,12 +1,16 @@
-g++ -shared -o output/FileManager.so -fPIC src/FileManager/FileManager.cpp
+cd cf
+g++ -fPIC -c ../src/FileManager/FileManager.cpp
 echo "FileManager"
-g++ -shared -o output/FileProcessor.so -fPIC \
-src/FileProcessor/FileData.cpp src/FileProcessor/Reader.cpp src/FileProcessor/Characters.cpp src/FileProcessor/Interpret.cpp \
-output/FileManager.so
+g++ -fPIC \
+ -c ../src/FileProcessor/FileData.cpp ../src/FileProcessor/Reader.cpp ../src/FileProcessor/Codes.cpp ../src/FileProcessor/Interpret.cpp ../src/Tools.cpp
 echo "FileProcessor"
-g++ -shared -o output/CFBackend.so -fPIC src/CFBackend.cpp src/SectionData.cpp output/FileProcessor.so
+g++ -fPIC -c ../src/CFBackend.cpp ../src/SectionData.cpp
 echo "CFBackend"
-g++ -shared -o output/CFEmbed.so -fPIC src/CFEmbed.cpp output/FileManager.so output/FileProcessor.so output/CFBackend.so
+
+g++ -fPIC -c ../src/CFEmbed.cpp
+
+g++ -shared -fPIC -o libCFEmbed.so CFEmbed.o FileManager.o FileData.o Reader.o Codes.o Interpret.o Tools.o CFBackend.o SectionData.o
 echo "CFEmbed"
-g++ -o output/CloudyForest src/CF.cpp output/FileManager.so output/FileProcessor.so output/CFBackend.so
+
+g++ -o CloudyForest ../src/CF.cpp FileManager.o FileData.o Reader.o Codes.o Interpret.o Tools.o CFBackend.o SectionData.o CFEmbed.o
 echo "CF"
