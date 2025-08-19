@@ -3,65 +3,53 @@
 #include <algorithm>
 
 bool StringVecContains(const vector<string> &list, const string &item) {
-  if (find(list.begin(), list.end(), item) != list.end()) {
-    return true;
-  } else {
-    return false;
-  }
+  return find(list.begin(), list.end(), item) != list.end();
 }
 
 bool CharVecContains(const vector<char> &list, const char &item) {
-  if (find(list.begin(), list.end(), item) != list.end()) {
-    return true;
-  } else {
-    return false;
-  }
+  return find(list.begin(), list.end(), item) != list.end();
 }
 
-vector<string> TrimText(const string &Text, const string &Saperator) {
-	vector<string> v;
-	string s;
+vector<string> TrimText(const string &Text, const string &Separator) {
+	vector<string> result;
+	string current;
+	
 	for (char c : Text) {
-		bool IsSap = false;
-		for (char Sape : Saperator) {
-			if(Sape == c){
-				IsSap = true;
+		if (Separator.find(c) != string::npos) {
+			if (!current.empty()) {
+				result.push_back(current);
+				current.clear();
 			}
-		}
-		if(IsSap){
-			if(!s.empty()){
-				v.emplace(v.end(), s);
-				s.clear();
-			}
-		}else{
-			s += c;
+		} else {
+			current += c;
 		}
 	}
 
-	if(!s.empty()){
-		v.emplace(v.end(), s);
-		s.clear();
+	if (!current.empty()) {
+		result.push_back(current);
 	}
-	return v;
+	return result;
 }
 
 
 string GetParentDir(const string &path){
-    vector<string> SaperatedFilePath = TrimText(path, "/\\");
-    string Directory;
-    for(string s: SaperatedFilePath){
-        if(s != SaperatedFilePath[SaperatedFilePath.size()-1]){
-            Directory = Directory + s + '/';
-        }
+    vector<string> separatedFilePath = TrimText(path, "/\\");
+    if (separatedFilePath.empty()) return "";
+    
+    string directory;
+    for (size_t i = 0; i < separatedFilePath.size() - 1; i++) {
+        directory += separatedFilePath[i] + '/';
     }
-    return Directory;
+    return directory;
 }
 string GetPathLocationName(const string &path){
-    vector<string> SaperatedFilePath = TrimText(path, "/\\");
-    return SaperatedFilePath[SaperatedFilePath.size()-1];
+    vector<string> separatedFilePath = TrimText(path, "/\\");
+    if (separatedFilePath.empty()) return "";
+    return separatedFilePath.back();
 }
 string GetRelativePath(const string &path, const string &basepath){
-    vector<string> SaperatedFilePath = TrimText(path, "/\\");
-    vector<string> SaperatedBasePath = TrimText(basepath, "/\\");
-    return NULL;
+    vector<string> separatedFilePath = TrimText(path, "/\\");
+    vector<string> separatedBasePath = TrimText(basepath, "/\\");
+    // TODO: Implement relative path calculation
+    return "";
 }

@@ -37,3 +37,4 @@
 *.dwo
 
 output/*
+build/.cmake

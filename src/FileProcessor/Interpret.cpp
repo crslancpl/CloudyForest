@@ -9,31 +9,45 @@
 #include <memory>
 #include <utility>
 #include <string.h>
+#include <unordered_map>
+#include <functional>
 
 enum class ProjectNote{
     NONE,TAG,NAME,VERSION,DESCRIPTION,LANGUAGE,TEMPLATE,ENTRYFILE
 };
 
 void CFProjectInterp(CFFile *F){
-    ProjectNote n;
-    for (CFCode& code: F->Codes) {
-        //printf("%s\n", code.Content.c_str());
-        if(code.Content == "#Template"){
-            n = ProjectNote::TEMPLATE;
-        }else if(code.Content == "#Name"){
-            n = ProjectNote::NAME;
-        }else if(code.Content == "#Version"){
-            //
-        }else if(code.Content == "#Language"){
-            n = ProjectNote::TEMPLATE;
-        }else if(code.Content == "#EntryFile"){
-            n = ProjectNote::ENTRYFILE;
-        }else if(n == ProjectNote::TEMPLATE){
-            CFFile::ProcessFile("LangTemp/"+ code.Content + "/Template.txt", CFFileType::Template);
-            n = ProjectNote::NONE;
-        }else if(n == ProjectNote::ENTRYFILE){
-            CFFile::ProcessFile("TestInputFile/"+code.Content, CFFileType::SourceCode);
-            n = ProjectNote::NONE;
+    ProjectNote currentNote = ProjectNote::NONE;
+
+    // Map of directive handlers
+    std::unordered_map<std::string, std::function<void()>> directiveHandlers = {
+        {"#Template", [&]() { currentNote = ProjectNote::TEMPLATE; }},
+        {"#Name", [&]() { currentNote = ProjectNote::NAME; }},
+        {"#Version", [&]() { currentNote = ProjectNote::VERSION; }},
+        {"#Language", [&]() { currentNote = ProjectNote::LANGUAGE; }},
+        {"#EntryFile", [&]() { currentNote = ProjectNote::ENTRYFILE; }}
+    };
+
+    for (CFCode& code : F->Codes) {
+        // Handle directives
+        auto it = directiveHandlers.find(code.Content);
+        if (it != directiveHandlers.end()) {
+            it->second();
+            continue;
+        }
+
+        // Handle content based on current note
+        switch (currentNote) {
+            case ProjectNote::TEMPLATE:
+                CFFile::ProcessFile("LangTemp/" + code.Content + "/Template.txt", CFFileType::Template);
+                currentNote = ProjectNote::NONE;
+                break;
+            case ProjectNote::ENTRYFILE:
+                CFFile::ProcessFile("TestInputFile/" + code.Content, CFFileType::SourceCode);
+                currentNote = ProjectNote::NONE;
+                break;
+            default:
+                break;
         }
     }
 }
@@ -43,73 +57,99 @@ enum class TemplateNote{
 };
 
 void CFTemplateInterp(CFFile* F){
-    TemplateNote note;
+    TemplateNote currentNote = TemplateNote::OTHER;
+
+    // Map directive strings to note types
+    std::unordered_map<std::string, TemplateNote> directiveMap = {
+        {"#Type", TemplateNote::TYPE},
+        {"#Keyword", TemplateNote::KEYWORD},
+        {"#SLCmt", TemplateNote::SINGCMT},
+        {"#MLCmtS", TemplateNote::MULTCMTSTART},
+        {"#MLCmtE", TemplateNote::MULTCMTEND}
+    };
+
+    // Map note types to their corresponding BasicCodeTypes
+    std::unordered_map<TemplateNote, BasicCodeTypes> noteToCodeType = {
+        {TemplateNote::TYPE, BasicCodeTypes::TYPE},
+        {TemplateNote::KEYWORD, BasicCodeTypes::KEYWORD},
+        {TemplateNote::SINGCMT, BasicCodeTypes::SINGLELINECOMMENT},
+        {TemplateNote::MULTCMTSTART, BasicCodeTypes::MULTILINECOMMENTSTART},
+        {TemplateNote::MULTCMTEND, BasicCodeTypes::MULTILINECOMMENTEND}
+    };
+
     for (CFCode& code : F->Codes) {
-        if(code.Content == "\n")continue;
-        if(code.Content == "#Type"){
-            //indicates type
-            note = TemplateNote::TYPE;
-        }else if(code.Content == "#Keyword"){
-            note = TemplateNote::KEYWORD;
-        }else if(code.Content == "#SLCmt"){
-            note = TemplateNote::SINGCMT;
-        }else if(code.Content == "#MLCmtS"){
-            note = TemplateNote::MULTCMTSTART;
-        }else if(code.Content == "#MLCmtE"){
-            note = TemplateNote::MULTCMTEND;
-        }else if(StartWith(code.Content, "#")){
-            note = TemplateNote::OTHER;
-        }else if (StartWith(code.Content, "{") && EndWith(code.Content, "}")) {
-            //variable
-        }else if(note == TemplateNote::TYPE){
-            AddCFCode(code.Content, BasicCodeTypes::TYPE);
-        }else if(note == TemplateNote::KEYWORD){
-            AddCFCode(code.Content, BasicCodeTypes::KEYWORD);
-        }else if(note == TemplateNote::SINGCMT){
-            AddCFCode(code.Content, BasicCodeTypes::SINGLELINECOMMENT);
-        }else if (note == TemplateNote::MULTCMTSTART) {
-            AddCFCode(code.Content, BasicCodeTypes::MULTILINECOMMENTSTART);
-        }else if(note == TemplateNote::MULTCMTEND){
-            AddCFCode(code.Content, BasicCodeTypes::MULTILINECOMMENTEND);
+        if (code.Content == "\n") continue;
+
+        // Check if it's a directive
+        auto dirIt = directiveMap.find(code.Content);
+        if (dirIt != directiveMap.end()) {
+            currentNote = dirIt->second;
+            continue;
+        }
+
+        // Skip unknown directives and variables
+        if (StartWith(code.Content, "#") ||
+           (StartWith(code.Content, "{") && EndWith(code.Content, "}"))) {
+            currentNote = TemplateNote::OTHER;
+            continue;
+        }
+
+        // Process content based on current note
+        auto codeIt = noteToCodeType.find(currentNote);
+        if (codeIt != noteToCodeType.end()) {
+            AddCFCode(code.Content, codeIt->second);
         }
     }
 }
 
 Message mes;
 Highlight hl;
-void CFLangInterp(CFFile *F){
+
+void ProcessCompilerMode(CFFile* F) {
     for (CFCode& code : F->Codes) {
-        //printf("%s\n", code.Content.c_str());
-        if(GetAppType()== AppType::Embed){
+        int keywordType = GetCodeFromKeyword(code.Content);
 
-
-            hl.startpos = code.StartPos;
-            hl.endpos = code.EndPos;
-
-            hl.file = strdup(F->FilePath.c_str());
-            mes.Type = MessageType::DRAW;
-            if(GetCodeFromKeyword(code.Content) == TYPE){
-                hl.type = t::CF_TYPE;
-            }else if(GetCodeFromKeyword(code.Content) == KEYWORD){
-                hl.type = t::CF_KEYWORD;
-            }else if(code.CodeType == CFCodeType::MultiLineComment){
-                hl.type = t::CF_MULTCMT;
-            }else if(code.CodeType == CFCodeType::SingleLineComment){
-                hl.type = t::CF_SINGCMT;
-            }else if(code.CodeType == CFCodeType::Text){
-                hl.type = t::CF_TEXT;
-            }else{
-                hl.type = t::CF_NONE;
-            }
-            mes.Data = &hl;
-            emb_Send_Message(&mes);
-        }else if(GetAppType()== AppType::Compiler){
-            if(GetCodeFromKeyword(code.Content) == TYPE){
-                printf("%s Type\n", code.Content.c_str());
-            }else if(GetCodeFromKeyword(code.Content) == KEYWORD){
-                printf("%s Keyword\n", code.Content.c_str());
-            }
+        if (keywordType == TYPE) {
+            printf("%s Type\n", code.Content.c_str());
+        } else if (keywordType == KEYWORD) {
+            printf("%s Keyword\n", code.Content.c_str());
         }
+    }
+}
 
+t GetHighlightType(const CFCode& code) {
+    int keywordType = GetCodeFromKeyword(code.Content);
+
+    if (keywordType == TYPE) return t::CF_TYPE;
+    if (keywordType == KEYWORD) return t::CF_KEYWORD;
+
+    switch (code.CodeType) {
+        case CFCodeType::MultiLineComment: return t::CF_MULTCMT;
+        case CFCodeType::SingleLineComment: return t::CF_SINGCMT;
+        case CFCodeType::Text: return t::CF_TEXT;
+        default: return t::CF_NONE;
+    }
+}
+
+void ProcessEmbedMode(CFFile* F) {
+    for (CFCode& code : F->Codes) {
+        hl.startpos = code.StartPos;
+        hl.endpos = code.EndPos;
+        hl.file = strdup(F->FilePath.c_str());
+        hl.type = GetHighlightType(code);
+
+        mes.Type = MessageType::DRAW;
+        mes.Data = &hl;
+        emb_Send_Message(&mes);
+    }
+}
+
+void CFLangInterp(CFFile *F){
+    AppType appType = GetAppType();
+
+    if (appType == AppType::Embed) {
+        ProcessEmbedMode(F);
+    } else if (appType == AppType::Compiler) {
+        ProcessCompilerMode(F);
     }
 }
