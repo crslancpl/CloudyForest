@@ -60,7 +60,7 @@ string GetPathLocationName(const string &path){
     vector<string> SaperatedFilePath = TrimText(path, "/\\");
     return SaperatedFilePath[SaperatedFilePath.size()-1];
 }
-string GetReletivePath(const string &path, const string &basepath){
+string GetRelativePath(const string &path, const string &basepath){
     vector<string> SaperatedFilePath = TrimText(path, "/\\");
     vector<string> SaperatedBasePath = TrimText(basepath, "/\\");
     return NULL;

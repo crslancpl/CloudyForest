@@ -1,5 +1,6 @@
 #ifndef TOOLS
 #define TOOLS
+#pragma once
 
 #include <string>
 #include <vector>
@@ -14,6 +15,6 @@ vector<string> TrimText(const string &Text, const string &Saperator);
 
 string GetParentDir(const string &path);
 string GetPathLocationName(const string &path);
-string GetReletivePath(const string &path, const string &basepath);
+string GetRelativePath(const string &path, const string &basepath);
 
 #endif

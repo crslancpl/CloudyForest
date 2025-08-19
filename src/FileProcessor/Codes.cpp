@@ -1,12 +1,40 @@
 #include "Codes.h"
-
+#include "../Tools.h"
 
 #include <cstdio>
 #include <map>
+#include <vector>
 
 map< string, int> KeywordsTypes;
 map< string, int> Keywords;
 map< string, int> CharKeywords;
+vector<char> OtherAcceptableCodeChar = {};
+
+string MulCmtEndSymb; //multiline comment end symbol
+string& GetMultilineCommentEndSym(){
+    return MulCmtEndSymb;
+}
+
+bool IsAcceptableCodeNameChar(char c){
+    if(IsAlphabetChar(c)){
+        return true;
+    }else if(IsNumberChar(c)){
+        return true;
+    }else if(CharVecContains(OtherAcceptableCodeChar, c)){
+        return true;
+    }
+    return false;
+}
+
+bool IsAcceptatbleNumByteChar(char c){
+    if(IsNumberChar(c)){
+        return true;
+    }else if(c == '.'){
+        return true;
+    }
+
+    return false;
+}
 
 bool IsNumberChar(char c){
     if(c >= 48 && c <= 57 ){
@@ -44,6 +72,9 @@ bool EndWith(const string &Text, const string &Pattern){
 }
 
 void AddCFCode(const string &Keyword, unsigned short Code){
+    if(Code == BasicCodeTypes::MULTILINECOMMENTEND){
+        MulCmtEndSymb = Keyword;
+    }
     KeywordsTypes.emplace(Keyword, Code);
     if(IsAlphabetChar(Keyword[0])){
         // String keyword
@@ -96,7 +127,7 @@ int GetCodeFromKeyword(const string &Keyword){
         return i->second;
     }
 
-    else return 0;
+    else return -1;
 }
 
 bool AcceptSucceedingSpecialChar(const string &Text, char C){

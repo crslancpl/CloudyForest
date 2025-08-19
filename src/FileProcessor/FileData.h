@@ -18,7 +18,7 @@ enum class CFFileType{
 };
 
 enum class CFCodeType{
-    String, Number, Type, Unknown, LangKeyWord
+    Text, NumberAndByte, SingleLineComment, MultiLineComment, Char, NormalCode, None
 };
 
 class CFCode{

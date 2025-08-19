@@ -1,6 +1,6 @@
 #include "FileManager.h"
 
-#include "../FileProcessor/Reader.h"
+#include "../FileProcessor/Tokenizer.h"
 
 #include <cstdio>
 #include <memory>

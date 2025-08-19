@@ -1,7 +1,7 @@
 /*
- * This will trim the content
+ * This will trim the content into words
  */
-#include "Reader.h"
+#include "Tokenizer.h"
 
 #include <cstdio>
 #include <iostream>
@@ -28,13 +28,8 @@ bool Reader::ReadFile(CFFile* f, bool trimspecialchar){
     return true;
 }
 
-enum class ProcessType: short{
-    Text, NumberAndByte, SingleLineComment, MultiLineComment, Char, NormalCode, None
-};
 
-ProcessType p = ProcessType::None;
-
-void Reader::GetCodes(const char &c){
+void Reader::GetCodes(char c){
     // Transfer the whole file into symbols and words
     static string Note;
 
@@ -48,16 +43,24 @@ Beginning:
         CurrentLine++;
     }
 
-    if(p == ProcessType::SingleLineComment){
+    if(CodeType == CFCodeType::SingleLineComment){
         if(c == '\n'){
-            p = ProcessType::None;
+            CodeEndPos = CurrentReadingPos -1;
+            PushSymbol();
+            CodeType = CFCodeType::None;
+        }else{
+            CurrentCode += c;
         }
         return;
-    }else if(p == ProcessType::MultiLineComment){
-        //if(GetCodeFromKeyword() == MULTILINECOMMENTEND){
-            //
-            //}
-    }else if(p == ProcessType::Text){
+    }else if(CodeType == CFCodeType::MultiLineComment){
+        CurrentCode += c;
+        if(EndWith(CurrentCode, GetMultilineCommentEndSym())){
+            CodeEndPos = CurrentReadingPos;
+            PushSymbol();
+            CodeType = CFCodeType::None;
+        }
+        return;
+    }else if(CodeType == CFCodeType::Text){
         CurrentCode += c;
         if(c == '\\'){
             //escape character
@@ -74,26 +77,31 @@ Beginning:
             Note.clear();
         }
         return;
-    }else if(p == ProcessType::NumberAndByte){
+    }else if(CodeType == CFCodeType::NumberAndByte){
         if(IsAcceptatbleNumByteChar(c)){
             CurrentCode += c;
             return;
         }
-    }else if(p== ProcessType::NormalCode){
+    }else if(CodeType== CFCodeType::NormalCode){
         if(IsAcceptableCodeNameChar(c)){
             CurrentCode += c;
             return;
         }
-    }else if(p == ProcessType::Char){
+    }else if(CodeType == CFCodeType::Char){
         if(AcceptSucceedingSpecialChar(CurrentCode, c)){
             CurrentCode += c;
             return;
         }else{
-            CodeEndPos = CurrentReadingPos-1;
-            int Result = PushSymbol();
-            if(Result == 31){
-                p = ProcessType::SingleLineComment;
+            int Result = GetCodeFromKeyword(CurrentCode);
+            if(Result == BasicCodeTypes::SINGLELINECOMMENT){
+                CodeType = CFCodeType::SingleLineComment;
                 goto Beginning;
+            }else if(Result == BasicCodeTypes::MULTILINECOMMENTSTART){
+                CodeType = CFCodeType::MultiLineComment;
+                goto Beginning;
+            }else{
+                CodeEndPos = CurrentReadingPos-1;
+                PushSymbol();
             }
         }
 
@@ -115,28 +123,21 @@ Beginning:
     }else if(IsNumberChar(c)){
         //Number
         CurrentCode += c;
-        p = ProcessType::NumberAndByte;
+        CodeType = CFCodeType::NumberAndByte;
     }else if(IsAlphabetChar(c)){
         //Alphabet
         CurrentCode += c;
-        p = ProcessType::NormalCode;
+        CodeType = CFCodeType::NormalCode;
     }else{
         //Special char
-        if(TrimSpecialChar){
-            if(c == '\'' || c == '\"' ){
-                CodeEndPos = CurrentReadingPos-1;
-                PushSymbol();
-                p = ProcessType::Text;
-            }else{
-                CodeEndPos = CurrentReadingPos -1;
-                PushSymbol();
-                p = ProcessType::Char;
-            }
-        }else{
-            if(c == '\'' || c == '\"' ){
-                PushSymbol();
-                p = ProcessType::Text;
-            }
+        if(c == '\'' || c == '\"' ){
+            CodeEndPos = CurrentReadingPos-1;
+            PushSymbol();
+            CodeType = CFCodeType::Text;
+        }else if(TrimSpecialChar){
+            CodeEndPos = CurrentReadingPos -1;
+            PushSymbol();
+            CodeType = CFCodeType::Char;
         }
         CurrentCode += c;
     }
@@ -145,7 +146,6 @@ Beginning:
 
 
 int Reader::PushSymbol(){
-    p = ProcessType::None;
     if(! CurrentCode.empty()){
         int intcode = GetCodeFromKeyword(CurrentCode);
 
@@ -159,32 +159,8 @@ int Reader::PushSymbol(){
         FileToRead->Codes.push_back(Code);
 
         CurrentCode.clear();
-        CodeType = CFCodeType::Unknown;
+        CodeType = CFCodeType::None;
         return intcode;
     }
     return -1;
-}
-
-
-vector<char> OtherAcceptableCodeChar = {};
-
-bool IsAcceptableCodeNameChar(char c){
-    if(IsAlphabetChar(c)){
-        return true;
-    }else if(IsNumberChar(c)){
-        return true;
-    }else if(CharVecContains(OtherAcceptableCodeChar, c)){
-        return true;
-    }
-    return false;
-}
-
-bool IsAcceptatbleNumByteChar(char c){
-    if(IsNumberChar(c)){
-        return true;
-    }else if(c == '.'){
-        return true;
-    }
-
-    return false;
 }

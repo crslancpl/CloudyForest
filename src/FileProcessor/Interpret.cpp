@@ -17,7 +17,7 @@ enum class ProjectNote{
 void CFProjectInterp(CFFile *F){
     ProjectNote n;
     for (CFCode& code: F->Codes) {
-        printf("%s", code.Content.c_str());
+        //printf("%s\n", code.Content.c_str());
         if(code.Content == "#Template"){
             n = ProjectNote::TEMPLATE;
         }else if(code.Content == "#Name"){
@@ -39,7 +39,7 @@ void CFProjectInterp(CFFile *F){
 }
 
 enum class TemplateNote{
-    OTHER, TYPE, DEF, KEYWORD
+    OTHER, TYPE, DEF, KEYWORD, SINGCMT, MULTCMTSTART, MULTCMTEND
 };
 
 void CFTemplateInterp(CFFile* F){
@@ -51,6 +51,12 @@ void CFTemplateInterp(CFFile* F){
             note = TemplateNote::TYPE;
         }else if(code.Content == "#Keyword"){
             note = TemplateNote::KEYWORD;
+        }else if(code.Content == "#SLCmt"){
+            note = TemplateNote::SINGCMT;
+        }else if(code.Content == "#MLCmtS"){
+            note = TemplateNote::MULTCMTSTART;
+        }else if(code.Content == "#MLCmtE"){
+            note = TemplateNote::MULTCMTEND;
         }else if(StartWith(code.Content, "#")){
             note = TemplateNote::OTHER;
         }else if (StartWith(code.Content, "{") && EndWith(code.Content, "}")) {
@@ -59,6 +65,12 @@ void CFTemplateInterp(CFFile* F){
             AddCFCode(code.Content, BasicCodeTypes::TYPE);
         }else if(note == TemplateNote::KEYWORD){
             AddCFCode(code.Content, BasicCodeTypes::KEYWORD);
+        }else if(note == TemplateNote::SINGCMT){
+            AddCFCode(code.Content, BasicCodeTypes::SINGLELINECOMMENT);
+        }else if (note == TemplateNote::MULTCMTSTART) {
+            AddCFCode(code.Content, BasicCodeTypes::MULTILINECOMMENTSTART);
+        }else if(note == TemplateNote::MULTCMTEND){
+            AddCFCode(code.Content, BasicCodeTypes::MULTILINECOMMENTEND);
         }
     }
 }
@@ -67,6 +79,7 @@ Message mes;
 Highlight hl;
 void CFLangInterp(CFFile *F){
     for (CFCode& code : F->Codes) {
+        //printf("%s\n", code.Content.c_str());
         if(GetAppType()== AppType::Embed){
 
 
@@ -79,6 +92,12 @@ void CFLangInterp(CFFile *F){
                 hl.type = t::CF_TYPE;
             }else if(GetCodeFromKeyword(code.Content) == KEYWORD){
                 hl.type = t::CF_KEYWORD;
+            }else if(code.CodeType == CFCodeType::MultiLineComment){
+                hl.type = t::CF_MULTCMT;
+            }else if(code.CodeType == CFCodeType::SingleLineComment){
+                hl.type = t::CF_SINGCMT;
+            }else if(code.CodeType == CFCodeType::Text){
+                hl.type = t::CF_TEXT;
             }else{
                 hl.type = t::CF_NONE;
             }
@@ -86,7 +105,9 @@ void CFLangInterp(CFFile *F){
             emb_Send_Message(&mes);
         }else if(GetAppType()== AppType::Compiler){
             if(GetCodeFromKeyword(code.Content) == TYPE){
+                printf("%s Type\n", code.Content.c_str());
             }else if(GetCodeFromKeyword(code.Content) == KEYWORD){
+                printf("%s Keyword\n", code.Content.c_str());
             }
         }
 

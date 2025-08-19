@@ -15,7 +15,7 @@ public:
 
     bool ReadFile(CFFile* f, bool trimspecialchar);
 
-    void GetCodes(const char &c);
+    void GetCodes(char c);
 private:
     int CurrentLine = 0;
     int CurrentReadingPos = 0;
@@ -28,7 +28,6 @@ private:
     int PushSymbol();
 };
 
-bool IsAcceptableCodeNameChar(char c);
-bool IsAcceptatbleNumByteChar(char c);
+
 
 #endif

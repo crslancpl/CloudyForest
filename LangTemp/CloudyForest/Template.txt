@@ -1,9 +1,9 @@
-#SingleLineComment
+#SLCmt
 //
 
-#MultiLineCommentStart
+#MLCmtS
 /*
-#MultiLineCommentEnd
+#MLCmtE
 */
 
 #Type

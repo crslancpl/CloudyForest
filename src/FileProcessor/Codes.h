@@ -9,6 +9,11 @@ enum BasicCodeTypes: int{
     SINGLELINECOMMENT, MULTILINECOMMENTSTART, MULTILINECOMMENTEND, TYPE, NUM, BYTE, STRING, KEYWORD
 };
 
+string& GetMultilineCommentEndSym();
+
+bool IsAcceptableCodeNameChar(char c);
+bool IsAcceptatbleNumByteChar(char c);
+
 bool IsNumberChar(char c);
 bool IsAlphabetChar(char c);
 

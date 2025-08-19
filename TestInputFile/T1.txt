@@ -3,3 +3,9 @@ function a(){
     b = "b";
     return b;
 }
+
+// adba asda;dka;d var
+
+/* daljdlajdla
+dlajdlaj var* */
+-- dasda
