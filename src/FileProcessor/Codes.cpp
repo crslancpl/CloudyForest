@@ -8,7 +8,7 @@
 map< string, int> KeywordsTypes;
 map< string, int> Keywords;
 map< string, int> CharKeywords;
-vector<char> OtherAcceptableCodeChar = {};
+vector<char> OtherAcceptableCodeChar = {'_'};
 
 string MulCmtEndSymb; //multiline comment end symbol
 string& GetMultilineCommentEndSym(){
