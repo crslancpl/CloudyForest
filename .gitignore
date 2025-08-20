@@ -36,5 +36,6 @@
 # debug information files
 *.dwo
 
+cf/CloudyForest
 output/*
 build/.cmake
