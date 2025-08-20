@@ -4,6 +4,7 @@
 #include "Codes.h"
 #include "FileData.h"
 #include "../CFEmbed.h"
+#include "../Tools.h"
 
 #include <cstdio>
 #include <memory>
@@ -39,11 +40,11 @@ void CFProjectInterp(CFFile *F){
         // Handle content based on current note
         switch (currentNote) {
             case ProjectNote::TEMPLATE:
-                CFFile::ProcessFile("LangTemp/" + code.Content + "/Template.txt", CFFileType::Template);
+                CFFile::ProcessFile("syntax/" + code.Content + ".txt", CFFileType::Template);
                 currentNote = ProjectNote::NONE;
                 break;
             case ProjectNote::ENTRYFILE:
-                CFFile::ProcessFile("TestInputFile/" + code.Content, CFFileType::SourceCode);
+                CFFile::ProcessFile(GetDir() + code.Content, CFFileType::SourceCode);
                 currentNote = ProjectNote::NONE;
                 break;
             default:
@@ -65,7 +66,8 @@ void CFTemplateInterp(CFFile* F){
         {"#Keyword", TemplateNote::KEYWORD},
         {"#SLCmt", TemplateNote::SINGCMT},
         {"#MLCmtS", TemplateNote::MULTCMTSTART},
-        {"#MLCmtE", TemplateNote::MULTCMTEND}
+        {"#MLCmtE", TemplateNote::MULTCMTEND},
+        {"#TRIMCHAR", TemplateNote::OTHER},
     };
 
     // Map note types to their corresponding BasicCodeTypes
@@ -88,7 +90,7 @@ void CFTemplateInterp(CFFile* F){
         }
 
         // Skip unknown directives and variables
-        if (StartWith(code.Content, "#") ||
+        if (StartWith(code.Content, "#") && code.Content.length() > 1 ||
            (StartWith(code.Content, "{") && EndWith(code.Content, "}"))) {
             currentNote = TemplateNote::OTHER;
             continue;

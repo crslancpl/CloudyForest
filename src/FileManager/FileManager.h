@@ -23,6 +23,6 @@ void ReqLocalFile(const char *filepath);
 
 void RespondFile(const string &filepath,const string &content, bool ispath);
 
-void ReadContent(shared_ptr<CFFile> f,const string &pathorcontent, bool ispath);
+void ReadContent(shared_ptr<CFFile>& f,const string &pathorcontent, bool ispath);
 
 #endif

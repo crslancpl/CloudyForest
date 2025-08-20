@@ -1,5 +1,7 @@
 #include "FileData.h"
 #include "../FileManager/FileManager.h"
+#include "../Tools.h"
+#include "../SectionData.h"
 #include "Interpret.h"
 #include "Tokenizer.h"
 #include <cstdio>
@@ -15,7 +17,6 @@ void CFFile::ProcessFile(const string &filepath, CFFileType filetype){
         printf("%s processed\n", filepath.c_str());
         return;
     }
-
     shared_ptr<CFFile> cf = make_shared<CFFile>();
     ProcessedFile.push_back(cf);
     cf->Get(filepath, filetype);
@@ -31,7 +32,7 @@ bool CFFile::CheckIfProcessed(const string &filepath){
 }
 
 shared_ptr<CFFile> CFFile::FindCFFile(const string &filename){
-    for (shared_ptr<CFFile> file : ProcessedFile) {
+    for (shared_ptr<CFFile>& file : ProcessedFile) {
         if(file->FilePath == filename){
             return file;
         }
@@ -46,18 +47,19 @@ void CFFile::Get(const string &filepath, CFFileType filetype){
 }
 
 void CFFile::Read(){
-    Reader r;
+    Tokenizer tokenizer;
     switch (FileType) {
         case CFFileType::Project:
-            r.ReadFile(this,false);
+            SetDir(GetParentDir(this->FilePath));
+            tokenizer.TokenizeFile(this,false);
             CFProjectInterp(this);
             break;
         case CFFileType::Template:
-            r.ReadFile(this,false);
+            tokenizer.TokenizeFile(this,false);
             CFTemplateInterp(this);
             break;
         case CFFileType::SourceCode:
-            r.ReadFile(this, true);
+            tokenizer.TokenizeFile(this, true);
             CFLangInterp(this);
             break;
         default:

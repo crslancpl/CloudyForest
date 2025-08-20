@@ -8,12 +8,12 @@
 
 using namespace std;
 
-class Reader{
+class Tokenizer{
 public:
     CFFile* FileToRead;
     bool TrimSpecialChar;
 
-    bool ReadFile(CFFile* f, bool trimspecialchar);
+    bool TokenizeFile(CFFile* f, bool trimspecialchar);
 
     void GetCodes(char c);
 private:
@@ -27,7 +27,7 @@ private:
     bool isEscapeNext = false;
 
     int PushSymbol();
-    
+
     // State processing methods
     bool ProcessCurrentState(char c);
     bool ProcessSingleLineComment(char c);
@@ -36,7 +36,7 @@ private:
     bool ProcessNumberState(char c);
     bool ProcessNormalCodeState(char c);
     bool ProcessCharState(char c);
-    
+
     // Character processing methods
     void ProcessNewCharacter(char c);
     void ProcessNewline(char c);

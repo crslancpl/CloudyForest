@@ -17,7 +17,7 @@ void emb_Send_Message_To_CF(Message* mes){
     }else if (mes->Type == MessageType::LANG) {
         Lang *l = (Lang*)(mes->Data);
         string langname(l->LangName);
-        CFFile::ProcessFile("LangTemp/"+ langname + "/Template.txt", CFFileType::Template);
+        LoadLangTemplate(langname);
     }else if(mes->Type == MessageType::ENTRYFILE){
         Entry* e = (Entry*)(mes->Data);
         CFFile::ProcessFile(e->FileName, CFFileType::SourceCode);

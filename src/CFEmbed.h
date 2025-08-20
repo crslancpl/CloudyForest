@@ -17,12 +17,12 @@ typedef struct Connect{
 }Connect ;
 
 typedef struct FileRequest{
-    const char* FilePath;//reletive
+    const char* FilePath;//relative
 }FileRequest;
 
 typedef struct FileRespond{
     bool IsPath;
-    const char* FilePath;// reletive, telling which file is this
+    const char* FilePath;// relative, telling which file is this
     const char* Content;// can be path or whole file
 }FileRespond;
 

@@ -36,41 +36,6 @@ bool IsAcceptatbleNumByteChar(char c){
     return false;
 }
 
-bool IsNumberChar(char c){
-    if(c >= 48 && c <= 57 ){
-        return true;
-    }
-    return false;
-}
-
-bool IsAlphabetChar(char c){
-    if(c >= 65 && c <= 90){
-        return true;
-    }
-
-    if(c >= 97 && c <= 122){
-        return true;
-    }
-
-    return false;
-}
-
-bool StartWith(const string &Text, const string &Pattern){
-    if(Text.length() < Pattern.length()) return false;
-    for(int i = 0; i < Pattern.length(); i++){
-        if(Text[i] != Pattern[i])return false;
-    }
-    return true;
-}
-
-bool EndWith(const string &Text, const string &Pattern){
-    if(Text.length() < Pattern.length()) return false;
-    for(int i = 0; i < Pattern.length(); i++){
-        if(Text[Text.length()-1 - i] != Pattern[Pattern.length()-1 - i])return false;
-    }
-    return true;
-}
-
 void AddCFCode(const string &Keyword, unsigned short Code){
     if(Code == BasicCodeTypes::MULTILINECOMMENTEND){
         MulCmtEndSymb = Keyword;

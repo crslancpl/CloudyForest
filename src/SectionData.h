@@ -19,4 +19,7 @@ AppType GetAppType();
 
 void SetProject(const string &projectfile);
 
+void SetDir(const string &Dirpath);
+string& GetDir();
+
 #endif

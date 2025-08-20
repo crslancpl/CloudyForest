@@ -37,7 +37,7 @@ void RespondFile(const string &filepath,const string &content, bool ispath){
     // Contents will be stored in CFFile. Reader is no longer needed
 }
 
-void ReadContent(shared_ptr<CFFile> f,const string &pathorcontent, bool ispath){
+void ReadContent(shared_ptr<CFFile>& f,const string &pathorcontent, bool ispath){
     if(ispath){
         std::fstream fs(pathorcontent);
         if (fs.fail()) {

@@ -16,7 +16,7 @@
 #include "../Tools.h"
 
 
-bool Reader::ReadFile(CFFile* f, bool trimspecialchar){
+bool Tokenizer::TokenizeFile(CFFile* f, bool trimspecialchar){
     //
     TrimSpecialChar = trimspecialchar;
     FileToRead = f;
@@ -29,7 +29,7 @@ bool Reader::ReadFile(CFFile* f, bool trimspecialchar){
 }
 
 
-void Reader::GetCodes(char c){
+void Tokenizer::GetCodes(char c){
     // Transfer the whole file into symbols and words
     CurrentReadingPos++;// started from 1
 
@@ -54,7 +54,7 @@ void Reader::GetCodes(char c){
     ProcessNewCharacter(c);
 }
 
-bool Reader::ProcessCurrentState(char c) {
+bool Tokenizer::ProcessCurrentState(char c) {
     switch(CodeType) {
         case CFCodeType::SingleLineComment:
             return ProcessSingleLineComment(c);
@@ -74,7 +74,7 @@ bool Reader::ProcessCurrentState(char c) {
     }
 }
 
-bool Reader::ProcessSingleLineComment(char c) {
+bool Tokenizer::ProcessSingleLineComment(char c) {
     if(c == '\n'){
         CodeEndPos = CurrentReadingPos - 1;
         PushSymbol();
@@ -86,7 +86,7 @@ bool Reader::ProcessSingleLineComment(char c) {
     return true;
 }
 
-bool Reader::ProcessMultiLineComment(char c) {
+bool Tokenizer::ProcessMultiLineComment(char c) {
     CurrentCode += c;
     if(EndWith(CurrentCode, GetMultilineCommentEndSym())){
         CodeEndPos = CurrentReadingPos;
@@ -96,7 +96,7 @@ bool Reader::ProcessMultiLineComment(char c) {
     return true;
 }
 
-bool Reader::ProcessTextState(char c) {
+bool Tokenizer::ProcessTextState(char c) {
     CurrentCode += c;
     if(c == '\\'){
         // escape character
@@ -114,7 +114,7 @@ bool Reader::ProcessTextState(char c) {
     return true;
 }
 
-bool Reader::ProcessNumberState(char c) {
+bool Tokenizer::ProcessNumberState(char c) {
     if(IsAcceptatbleNumByteChar(c)){
         CurrentCode += c;
         return true;
@@ -123,7 +123,7 @@ bool Reader::ProcessNumberState(char c) {
     return false;
 }
 
-bool Reader::ProcessNormalCodeState(char c) {
+bool Tokenizer::ProcessNormalCodeState(char c) {
     if(IsAcceptableCodeNameChar(c)){
         CurrentCode += c;
         return true;
@@ -132,7 +132,7 @@ bool Reader::ProcessNormalCodeState(char c) {
     return false;
 }
 
-bool Reader::ProcessCharState(char c) {
+bool Tokenizer::ProcessCharState(char c) {
     if(AcceptSucceedingSpecialChar(CurrentCode, c)){
         CurrentCode += c;
         return true;
@@ -153,7 +153,7 @@ bool Reader::ProcessCharState(char c) {
     }
 }
 
-void Reader::ProcessNewCharacter(char c) {
+void Tokenizer::ProcessNewCharacter(char c) {
     if(c == '\n'){
         ProcessNewline(c);
     } else if(c == ' ' || c == '\t'){
@@ -167,7 +167,7 @@ void Reader::ProcessNewCharacter(char c) {
     }
 }
 
-void Reader::ProcessNewline(char c) {
+void Tokenizer::ProcessNewline(char c) {
     CodeEndPos = CurrentReadingPos - 1;
     PushSymbol();
     CodeStartPos = CurrentReadingPos;
@@ -176,24 +176,24 @@ void Reader::ProcessNewline(char c) {
     PushSymbol();
 }
 
-void Reader::ProcessWhitespace() {
+void Tokenizer::ProcessWhitespace() {
     CodeEndPos = CurrentReadingPos - 1;
     PushSymbol();
 }
 
-void Reader::ProcessNumberStart(char c) {
+void Tokenizer::ProcessNumberStart(char c) {
     CurrentCode += c;
     CodeType = CFCodeType::NumberAndByte;
     CodeStartPos = CurrentReadingPos;
 }
 
-void Reader::ProcessAlphabetStart(char c) {
+void Tokenizer::ProcessAlphabetStart(char c) {
     CurrentCode += c;
     CodeType = CFCodeType::NormalCode;
     CodeStartPos = CurrentReadingPos;
 }
 
-void Reader::ProcessSpecialChar(char c) {
+void Tokenizer::ProcessSpecialChar(char c) {
     if(c == '\'' || c == '\"'){
         CodeEndPos = CurrentReadingPos - 1;
         PushSymbol();
@@ -213,7 +213,7 @@ void Reader::ProcessSpecialChar(char c) {
 }
 
 
-int Reader::PushSymbol(){
+int Tokenizer::PushSymbol(){
     if(! CurrentCode.empty()){
         int intcode = GetCodeFromKeyword(CurrentCode);
 

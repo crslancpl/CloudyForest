@@ -49,7 +49,7 @@ void QuickCompile(const string &filepath, const string& lang){
 
 
 void LoadLangTemplate(const string &lang){
-    CFFile::ProcessFile("LangTemp/"+ lang + "/Template.txt", CFFileType::Template);
+    CFFile::ProcessFile("syntax/"+ lang + ".txt", CFFileType::Template);
 }
 
 
