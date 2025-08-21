@@ -5,6 +5,7 @@
 #ifndef CODEDATA
 #define CODEDATA
 
+#include "Codes.h"
 #include <sstream>
 #include <string>
 #include <vector>
@@ -16,10 +17,11 @@ using namespace std;
 enum class CFFileType{
     None, Template, Project, SourceCode
 };
-
+/*
 enum class CFCodeType{
     Text, NumberAndByte, SingleLineComment, MultiLineComment, Char, NormalCode, None
 };
+*/
 
 class CFCode{
     public:
@@ -27,7 +29,7 @@ class CFCode{
     int EndPos;
     int Line;
     int IntCode;
-    CFCodeType CodeType;
+    BasicCodeTypes CodeType;
     string Content;
 };
 

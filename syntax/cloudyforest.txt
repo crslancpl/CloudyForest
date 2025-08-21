@@ -12,10 +12,16 @@ var function int char class string
 #Keyword
 return if while get set
 
-#definition Type
-@Type {TypeName}
-@Type {TypeName}  = {TypeValue}
+#NewType
+class {NewType}
+
+#NewFunction
+@Type {FunctionName} ( ... )
 
 #Function
-@Type {FunctionName} ( {FunctionParameters} )
-{FunctionName} ( {FunctionParameters} )
+{FunctionName} ( ... )
+
+#TagSymbol
+#
+#Tags
+include pragma ifndef define

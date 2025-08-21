@@ -35,7 +35,7 @@ typedef struct Entry{
 }Entry;
 
 enum t{
-    CF_TYPE, CF_KEYWORD, CF_FUNCTIONNAME, CF_NONE, CF_MULTCMT, CF_SINGCMT, CF_TEXT
+    CF_TYPE, CF_KEYWORD, CF_FUNCTIONNAME, CF_NONE, CF_MULTCMT, CF_SINGCMT, CF_TEXT, CF_TAG
 };
 
 typedef struct Highlight{

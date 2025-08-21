@@ -56,19 +56,18 @@ void Tokenizer::GetCodes(char c){
 
 bool Tokenizer::ProcessCurrentState(char c) {
     switch(CodeType) {
-        case CFCodeType::SingleLineComment:
+        case BasicCodeTypes::SINGLELINECOMMENT:
             return ProcessSingleLineComment(c);
-        case CFCodeType::MultiLineComment:
+        case BasicCodeTypes::MULTILINECOMMENT:
             return ProcessMultiLineComment(c);
-        case CFCodeType::Text:
+        case BasicCodeTypes::STRING:
             return ProcessTextState(c);
-        case CFCodeType::NumberAndByte:
+        case BasicCodeTypes::NUM:
             return ProcessNumberState(c);
-        case CFCodeType::NormalCode:
+        case BasicCodeTypes::NORMALCODE:
             return ProcessNormalCodeState(c);
-        case CFCodeType::Char:
+        case BasicCodeTypes::CHAR:
             return ProcessCharState(c);
-        case CFCodeType::None:
         default:
             return false; // Continue to process as new character
     }
@@ -78,7 +77,7 @@ bool Tokenizer::ProcessSingleLineComment(char c) {
     if(c == '\n'){
         CodeEndPos = CurrentReadingPos - 1;
         PushSymbol();
-        CodeType = CFCodeType::None;
+        CodeType = BasicCodeTypes::NONE;
         ProcessNewline(c);
     } else {
         CurrentCode += c;
@@ -91,7 +90,7 @@ bool Tokenizer::ProcessMultiLineComment(char c) {
     if(EndWith(CurrentCode, GetMultilineCommentEndSym())){
         CodeEndPos = CurrentReadingPos;
         PushSymbol();
-        CodeType = CFCodeType::None;
+        CodeType = BasicCodeTypes::NONE;
     }
     return true;
 }
@@ -139,10 +138,10 @@ bool Tokenizer::ProcessCharState(char c) {
     } else {
         int result = GetCodeFromKeyword(CurrentCode);
         if(result == BasicCodeTypes::SINGLELINECOMMENT){
-            CodeType = CFCodeType::SingleLineComment;
+            CodeType = BasicCodeTypes::SINGLELINECOMMENT;
             ProcessSingleLineComment(c);
         } else if(result == BasicCodeTypes::MULTILINECOMMENTSTART){
-            CodeType = CFCodeType::MultiLineComment;
+            CodeType = BasicCodeTypes::MULTILINECOMMENT;
             ProcessMultiLineComment(c);
         } else {
             CodeEndPos = CurrentReadingPos - 1;
@@ -183,13 +182,13 @@ void Tokenizer::ProcessWhitespace() {
 
 void Tokenizer::ProcessNumberStart(char c) {
     CurrentCode += c;
-    CodeType = CFCodeType::NumberAndByte;
+    CodeType = BasicCodeTypes::NUM;
     CodeStartPos = CurrentReadingPos;
 }
 
 void Tokenizer::ProcessAlphabetStart(char c) {
     CurrentCode += c;
-    CodeType = CFCodeType::NormalCode;
+    CodeType = BasicCodeTypes::NORMALCODE;
     CodeStartPos = CurrentReadingPos;
 }
 
@@ -197,13 +196,13 @@ void Tokenizer::ProcessSpecialChar(char c) {
     if(c == '\'' || c == '\"'){
         CodeEndPos = CurrentReadingPos - 1;
         PushSymbol();
-        CodeType = CFCodeType::Text;
+        CodeType = BasicCodeTypes::STRING;
         CurrentCode += c;
         CodeStartPos = CurrentReadingPos;
     } else if(TrimSpecialChar){
         CodeEndPos = CurrentReadingPos - 1;
         PushSymbol();
-        CodeType = CFCodeType::Char;
+        CodeType = BasicCodeTypes::CHAR;
         CurrentCode += c;
         CodeStartPos = CurrentReadingPos;
     } else {
@@ -227,7 +226,7 @@ int Tokenizer::PushSymbol(){
         FileToRead->Codes.push_back(Code);
 
         CurrentCode.clear();
-        CodeType = CFCodeType::None;
+        CodeType = BasicCodeTypes::NONE;
         return intcode;
     }
     return -1;

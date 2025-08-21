@@ -1,6 +1,7 @@
 #ifndef READER
 #define READER
 
+#include "Codes.h"
 #include "FileData.h"
 #include <memory>
 #include <sstream>
@@ -23,7 +24,7 @@ private:
     int CodeEndPos = 0;
     int CodeLine = 0;
     string CurrentCode;
-    CFCodeType CodeType;
+    BasicCodeTypes CodeType;
     bool isEscapeNext = false;
 
     int PushSymbol();

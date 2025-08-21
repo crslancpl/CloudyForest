@@ -1,5 +1,5 @@
 #Name Test
 #Version 1.0.0
 #Description "This is a sample project file."
-#Language CloudyForest
+#Template cpp
 #EntryFile T1.txt

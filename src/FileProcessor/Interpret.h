@@ -12,4 +12,10 @@ void CFTemplateInterp(CFFile *F);
 
 void CFLangInterp(CFFile *F);
 
+void FindTags(CFFile *F);
+
+void FindNewType(CFFile *F);
+
+void FindFunction(CFFile *F);
+
 #endif
