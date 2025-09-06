@@ -13,10 +13,12 @@ class Tokenizer{
 public:
     CFFile* FileToRead;
     bool TrimSpecialChar;
+    LangTemp *Template;
 
-    bool TokenizeFile(CFFile* f, bool trimspecialchar);
+    bool TokenizeFile(CFFile* f, LangTemp* temp);// pass null as Template means it will be read as template
 
-    void GetCodes(char c);
+    void TokenizeCodes(char c);
+    void TokenizeTemplate(char c);
 private:
     int CurrentLine = 0;
     int CurrentReadingPos = 0;

@@ -1,5 +1,5 @@
 /*
- * FileData will Load the file and let Reader to read it
+ * FileData will Load the file and let tokenizer to read it
  */
 
 #ifndef CODEDATA
@@ -17,11 +17,7 @@ using namespace std;
 enum class CFFileType{
     None, Template, Project, SourceCode
 };
-/*
-enum class CFCodeType{
-    Text, NumberAndByte, SingleLineComment, MultiLineComment, Char, NormalCode, None
-};
-*/
+
 
 class CFCode{
     public:
@@ -35,17 +31,20 @@ class CFCode{
 
 class CFFile{
     public:
-    static void ProcessFile(const string &filepath, CFFileType filetype);
-    static vector<shared_ptr<CFFile>> ProcessedFile;
-    static bool CheckIfProcessed(const string &filename);
-    static shared_ptr<CFFile> FindCFFile(const string &filename);
-
     stringstream FileContent;
     void Get(const string &filepath, CFFileType filetype);
     void Read();
     CFFileType FileType;
     string FilePath;
+    string Language;
+    LangTemp *LanguageTemplate;
     vector<CFCode> Codes;
 };
+
+void ClearProcessedFile();
+void ProcessFile(const string &filepath, const string& lang,CFFileType filetype);
+
+bool CheckIfProcessed(const string &filename);
+shared_ptr<CFFile> FindCFFile(const string &filename);
 
 #endif

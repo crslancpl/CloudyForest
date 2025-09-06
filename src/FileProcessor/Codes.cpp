@@ -5,17 +5,41 @@
 #include <map>
 #include <vector>
 
-map< string, int> KeywordsTypes;
-map< string, int> Keywords;
-map< string, int> CharKeywords;
+
+vector<LangTemp> LangTemp::Templates = {};
+
 vector<char> OtherAcceptableCodeChar = {'_'};
 
-string MulCmtEndSymb; //multiline comment end symbol
-string& GetMultilineCommentEndSym(){
+LangTemp *LangTemp::NewLangTemp(const string& langname){
+    //check if Language already exist
+    LangTemp *temp = LangTemp::GetLangTemp(langname);
+    if(temp != nullptr){
+        return temp;//exist
+    };
+
+    LangTemp::Templates.emplace_back();
+    temp = &LangTemp::Templates[LangTemp::Templates.size()-1];
+    temp->LangName = langname;
+
+    return temp;
+}
+
+LangTemp *LangTemp::GetLangTemp(const string& langname){
+    for(LangTemp &temp: LangTemp::Templates){
+        if (temp.LangName == langname) {
+            //printf("template found for %s\n", langname.c_str());
+            return &temp;
+        }
+    }
+    //printf("template not found for %s\n", langname.c_str());
+    return nullptr;
+}
+
+string& LangTemp::GetMultilineCommentEndSym(){
     return MulCmtEndSymb;
 }
 
-bool IsAcceptableCodeNameChar(char c){
+bool LangTemp::IsAcceptableCodeNameChar(char c){
     if(IsAlphabetChar(c)){
         return true;
     }else if(IsNumberChar(c)){
@@ -26,7 +50,7 @@ bool IsAcceptableCodeNameChar(char c){
     return false;
 }
 
-bool IsAcceptatbleNumByteChar(char c){
+bool LangTemp::IsAcceptatbleNumByteChar(char c){
     if(IsNumberChar(c)){
         return true;
     }else if(c == '.'){
@@ -36,7 +60,7 @@ bool IsAcceptatbleNumByteChar(char c){
     return false;
 }
 
-void AddCFCode(const string &Keyword, unsigned short Code){
+void LangTemp::AddCFCode(const string &Keyword, unsigned short Code){
     if(Code == BasicCodeTypes::MULTILINECOMMENTEND){
         MulCmtEndSymb = Keyword;
     }
@@ -50,7 +74,7 @@ void AddCFCode(const string &Keyword, unsigned short Code){
     }
 }
 
-void AddCustKeyword(const string &Code , const string &Keyword){
+void LangTemp::AddCustKeyword(const string &Code , const string &Keyword){
     // Type can be either name or code of the keyword
     pair<string, int> P;
 
@@ -77,7 +101,7 @@ void AddCustKeyword(const string &Code , const string &Keyword){
     }
 }
 
-int GetCodeFromKeyword(const string &Keyword){
+int LangTemp::GetCodeFromKeyword(const string &Keyword){
     map<string, int>::iterator i;
 
     i = CharKeywords.find(Keyword);
@@ -95,7 +119,7 @@ int GetCodeFromKeyword(const string &Keyword){
     else return -1;
 }
 
-bool AcceptSucceedingSpecialChar(const string &Text, char C){
+bool LangTemp::AcceptSucceedingSpecialChar(const string &Text, char C){
     for(pair<string, int> s: CharKeywords){
         if(StartWith(s.first,Text)){
             if(s.first[Text.length()] == C){

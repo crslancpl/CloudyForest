@@ -1,5 +1,6 @@
-#include
-int a ()
+#include ""
+int a () = 9192329.
+adasd12 2321321
 /*djaljslda
 dasjdlajd
 adjlawjd*/

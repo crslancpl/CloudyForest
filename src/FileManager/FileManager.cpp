@@ -30,7 +30,7 @@ void ReqLocalFile(const char *filepath){
 
 void RespondFile(const string &filepath,const string &content, bool ispath){
     printf("responded %s\n", filepath.c_str());
-    shared_ptr<CFFile> f = CFFile::FindCFFile(filepath);
+    shared_ptr<CFFile> f = FindCFFile(filepath);
     ReadContent( f, content, ispath);
     f->Read();
 

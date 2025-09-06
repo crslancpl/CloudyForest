@@ -16,20 +16,44 @@
 #include "../Tools.h"
 
 
-bool Tokenizer::TokenizeFile(CFFile* f, bool trimspecialchar){
+bool Tokenizer::TokenizeFile(CFFile* f, LangTemp* temp){
     //
-    TrimSpecialChar = trimspecialchar;
     FileToRead = f;
+
+    Template = temp;
+    f->LanguageTemplate = temp;
     char c;
-    while (f->FileContent.get(c)) {
-        GetCodes(c);
+    if(Template == nullptr){
+        while (f->FileContent.get(c)) {
+            TokenizeTemplate(c);
+        }
+        TokenizeTemplate(c);
+    }else{
+        //printf("template language %s\n", Template->LangName.c_str());
+        while (f->FileContent.get(c)) {
+            TokenizeCodes(c);
+        }
+        TokenizeCodes(0);
+
     }
-    GetCodes(0);
     return true;
 }
 
+void Tokenizer::TokenizeTemplate(char c){
+    if(c == ' ' || c == '\t' || c == '\n'){
+        if(!CurrentCode.empty()){
+            CFCode code;
+            code.CodeType = NORMALCODE;
+            code.Content = CurrentCode;
+            FileToRead->Codes.push_back(code);
+            CurrentCode.clear();
+        }
+    }else{
+        CurrentCode+=c;
+    }
+}
 
-void Tokenizer::GetCodes(char c){
+void Tokenizer::TokenizeCodes(char c){
     // Transfer the whole file into symbols and words
     CurrentReadingPos++;// started from 1
 
@@ -87,7 +111,7 @@ bool Tokenizer::ProcessSingleLineComment(char c) {
 
 bool Tokenizer::ProcessMultiLineComment(char c) {
     CurrentCode += c;
-    if(EndWith(CurrentCode, GetMultilineCommentEndSym())){
+    if(EndWith(CurrentCode, Template->GetMultilineCommentEndSym())){
         CodeEndPos = CurrentReadingPos;
         PushSymbol();
         CodeType = BasicCodeTypes::NONE;
@@ -101,6 +125,7 @@ bool Tokenizer::ProcessTextState(char c) {
         // escape character
         isEscapeNext = true;
     } else if(c == CurrentCode[0]){
+
         if(isEscapeNext){
             isEscapeNext = false;
         } else {
@@ -114,7 +139,7 @@ bool Tokenizer::ProcessTextState(char c) {
 }
 
 bool Tokenizer::ProcessNumberState(char c) {
-    if(IsAcceptatbleNumByteChar(c)){
+    if(Template->IsAcceptatbleNumByteChar(c)){
         CurrentCode += c;
         return true;
     }
@@ -123,7 +148,7 @@ bool Tokenizer::ProcessNumberState(char c) {
 }
 
 bool Tokenizer::ProcessNormalCodeState(char c) {
-    if(IsAcceptableCodeNameChar(c)){
+    if(Template->IsAcceptableCodeNameChar(c)){
         CurrentCode += c;
         return true;
     }
@@ -132,17 +157,20 @@ bool Tokenizer::ProcessNormalCodeState(char c) {
 }
 
 bool Tokenizer::ProcessCharState(char c) {
-    if(AcceptSucceedingSpecialChar(CurrentCode, c)){
+    if(Template->AcceptSucceedingSpecialChar(CurrentCode, c)){
         CurrentCode += c;
         return true;
-    } else {
-        int result = GetCodeFromKeyword(CurrentCode);
+    }else {
+        int result = Template->GetCodeFromKeyword(CurrentCode);
         if(result == BasicCodeTypes::SINGLELINECOMMENT){
             CodeType = BasicCodeTypes::SINGLELINECOMMENT;
             ProcessSingleLineComment(c);
         } else if(result == BasicCodeTypes::MULTILINECOMMENTSTART){
             CodeType = BasicCodeTypes::MULTILINECOMMENT;
             ProcessMultiLineComment(c);
+        } else if(result == BasicCodeTypes::STRING){
+            CodeType = BasicCodeTypes::STRING;
+            ProcessTextState(c);
         } else {
             CodeEndPos = CurrentReadingPos - 1;
             PushSymbol();
@@ -193,13 +221,7 @@ void Tokenizer::ProcessAlphabetStart(char c) {
 }
 
 void Tokenizer::ProcessSpecialChar(char c) {
-    if(c == '\'' || c == '\"'){
-        CodeEndPos = CurrentReadingPos - 1;
-        PushSymbol();
-        CodeType = BasicCodeTypes::STRING;
-        CurrentCode += c;
-        CodeStartPos = CurrentReadingPos;
-    } else if(TrimSpecialChar){
+    if(TrimSpecialChar){
         CodeEndPos = CurrentReadingPos - 1;
         PushSymbol();
         CodeType = BasicCodeTypes::CHAR;
@@ -214,7 +236,7 @@ void Tokenizer::ProcessSpecialChar(char c) {
 
 int Tokenizer::PushSymbol(){
     if(! CurrentCode.empty()){
-        int intcode = GetCodeFromKeyword(CurrentCode);
+        int intcode = Template->GetCodeFromKeyword(CurrentCode);
 
         //cout << (int)intcode << " "<<CurrentCode <<endl;
         CFCode Code;
@@ -223,6 +245,9 @@ int Tokenizer::PushSymbol(){
         Code.StartPos = CodeStartPos;
         Code.EndPos = CodeEndPos;
         Code.CodeType = CodeType;
+
+        //printf("%s %i", Code.Content.c_str(), intcode);
+
         FileToRead->Codes.push_back(Code);
 
         CurrentCode.clear();

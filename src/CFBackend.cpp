@@ -32,13 +32,13 @@ void CompileProject(){
     cout<<"Enter the path of CFProject: ";
     string Path;
     cin >> Path;
-    CFFile::ProcessFile(Path, CFFileType::Project);
+    ProcessFile(Path,"", CFFileType::Project);
 }
 
 void QuickCompile(const string &filepath){
     SetAppType(AppType::Compiler);
     SetRequestFileFunc(nullptr);
-    CFFile::ProcessFile(filepath, CFFileType::Project);
+    ProcessFile(filepath, "project", CFFileType::Project);
 }
 
 void QuickCompile(const string &filepath, const string& lang){
@@ -49,10 +49,10 @@ void QuickCompile(const string &filepath, const string& lang){
 
 
 void LoadLangTemplate(const string &lang){
-    CFFile::ProcessFile("syntax/"+ lang + ".txt", CFFileType::Template);
+    ProcessFile("syntax/"+ lang + ".txt", lang, CFFileType::Template);
 }
 
 
 void Reload(){
-    CFFile::ProcessedFile.clear();
+    ClearProcessedFile();
 }

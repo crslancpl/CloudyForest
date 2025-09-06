@@ -7,13 +7,8 @@ enum MessageType:char{
     CONNECT, DRAW, ERROR, WARN, INFO, DOC, FILEREQ, FILERESP, LANG, ENTRYFILE, RELOAD
 };
 
-typedef struct Message{
-    MessageType Type;
-    void *Data;
-}Message;
-
 typedef struct Connect{
-    void (*bridge)(Message* m);
+    void (*bridge)(MessageType type,void* data);
 }Connect ;
 
 typedef struct FileRequest{
@@ -32,10 +27,11 @@ typedef struct Lang{
 
 typedef struct Entry{
     char* FileName;
+    char* language;
 }Entry;
 
 enum t{
-    CF_TYPE, CF_KEYWORD, CF_FUNCTIONNAME, CF_NONE, CF_MULTCMT, CF_SINGCMT, CF_TEXT, CF_TAG
+    CF_TYPE, CF_KEYWORD, CF_FUNCTIONNAME, CF_NONE, CF_MULTCMT, CF_SINGCMT, CF_TEXT, CF_TAG, CF_VALUE
 };
 
 typedef struct Highlight{
@@ -45,11 +41,11 @@ typedef struct Highlight{
     t type;
 }Highlight;
 
-void emb_Send_Message_To_CF(Message* mes);
+void emb_Send_Message_To_CF(MessageType type, void* data);
 
-void emb_Connect(void (*func)(Message*));
+void emb_Connect(void (*func)(MessageType, void*));
 
-void emb_Send_Message(Message *m);
+void emb_Send_Message(MessageType type, void *data);
 
 void emb_Request_File(const char* filepath);
 

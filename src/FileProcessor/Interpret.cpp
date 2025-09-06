@@ -14,6 +14,11 @@
 #include <unordered_map>
 #include <functional>
 
+
+/*
+ * Project
+ *
+ */
 enum class ProjectNote{
     NONE,TAG,NAME,VERSION,DESCRIPTION,LANGUAGE,TEMPLATE,ENTRYFILE
 };
@@ -41,11 +46,12 @@ void CFProjectInterp(CFFile *F){
         // Handle content based on current note
         switch (currentNote) {
             case ProjectNote::TEMPLATE:
-                CFFile::ProcessFile("syntax/" + code.Content + ".txt", CFFileType::Template);
+                F->Language = code.Content;
+                ProcessFile("syntax/" + code.Content + ".txt", code.Content ,CFFileType::Template);
                 currentNote = ProjectNote::NONE;
                 break;
             case ProjectNote::ENTRYFILE:
-                CFFile::ProcessFile(GetDir() + code.Content, CFFileType::SourceCode);
+                ProcessFile(GetDir() + code.Content, F->Language,CFFileType::SourceCode);
                 currentNote = ProjectNote::NONE;
                 break;
             default:
@@ -54,9 +60,14 @@ void CFProjectInterp(CFFile *F){
     }
 }
 
+
+/*
+ * Template
+ *
+ */
 enum class TemplateNote{
     OTHER, TYPE, DEF, KEYWORD, SINGCMT, MULTCMTSTART, MULTCMTEND,
-    FUNCTION, NEWTYPE, NEWFUNC, TAGSYMBOL, TAGS
+    FUNCTION, NEWTYPE, NEWFUNC, TAGSYMBOL, TAGS, TEXTSYMBOL, VALUE
 };
 
 void CFTemplateInterp(CFFile* F){
@@ -74,7 +85,9 @@ void CFTemplateInterp(CFFile* F){
         {"#NewType",  TemplateNote::NEWTYPE},
         {"#NewFunction",TemplateNote::NEWFUNC},
         {"#TagSymbol", TemplateNote::TAGSYMBOL},
-        {"#Tags", TemplateNote::TAGS}
+        {"#Tags", TemplateNote::TAGS},
+        {"#TextSymbol", TemplateNote::TEXTSYMBOL},
+        {"#Value", TemplateNote::VALUE}
     };
 
     // Map note types to their corresponding BasicCodeTypes
@@ -85,12 +98,18 @@ void CFTemplateInterp(CFFile* F){
         {TemplateNote::MULTCMTSTART, BasicCodeTypes::MULTILINECOMMENTSTART},
         {TemplateNote::MULTCMTEND, BasicCodeTypes::MULTILINECOMMENTEND},
         {TemplateNote::TAGSYMBOL, BasicCodeTypes::TAGSYMBOL},
-        {TemplateNote::TAGS, BasicCodeTypes::TAGS}
+        {TemplateNote::TAGS, BasicCodeTypes::TAGS},
+        {TemplateNote::TEXTSYMBOL, BasicCodeTypes::STRING},
+        {TemplateNote::VALUE, BasicCodeTypes::VALUE}
     };
+    LangTemp *temp = LangTemp::NewLangTemp(F->Language);
 
     for (CFCode& code : F->Codes) {
         if (code.Content == "\n" ) continue;
-
+        if(code.Content == "#TrimSpecialCharacter"){
+            temp->TrimSpecialChar = true;
+            continue;
+        }
         // Check if it's a directive
         auto dirIt = directiveMap.find(code.Content);
         if (dirIt != directiveMap.end()) {
@@ -106,29 +125,37 @@ void CFTemplateInterp(CFFile* F){
 
         // Process content based on current note
         auto codeIt = noteToCodeType.find(currentNote);
-        if (codeIt != noteToCodeType.end()) {
-            AddCFCode(code.Content, codeIt->second);
+        if (codeIt != noteToCodeType.end()){
+            //printf("%s %i\n", code.Content.c_str(), codeIt->second);
+            temp->AddCFCode(code.Content, codeIt->second);
         }
     }
 }
 
-Message mes;
+
+
+/*
+ *
+ * normal
+ */
+
 Highlight hl;
 
 void ProcessCompilerMode(CFFile* F) {
+    LangTemp *temp = LangTemp::GetLangTemp(F->Language);
     for (CFCode& code : F->Codes) {
-        int keywordType = GetCodeFromKeyword(code.Content);
+        int keywordType = temp->GetCodeFromKeyword(code.Content);
 
-        printf("%s (%i)", code.Content.c_str(), code.CodeType);
+        printf("%s%i ", code.Content.c_str(), code.CodeType);
     }
     printf("\n");
 }
 
-t GetHighlightType(const CFCode& code) {
-    int keywordType = GetCodeFromKeyword(code.Content);
-
+t GetHighlightType(const CFCode& code, LangTemp* temp) {
+    int keywordType = temp->GetCodeFromKeyword(code.Content);
     if (keywordType == TYPE) return t::CF_TYPE;
     if (keywordType == KEYWORD) return t::CF_KEYWORD;
+    if (keywordType == VALUE) return t::CF_VALUE;
 
 
     switch (code.CodeType) {
@@ -136,24 +163,23 @@ t GetHighlightType(const CFCode& code) {
         case SINGLELINECOMMENT: return t::CF_SINGCMT;
         case STRING: return t::CF_TEXT;
         case FUNCTION: return t::CF_FUNCTIONNAME;
+        case NUM: return t::CF_VALUE;
         case TAGSYMBOL:
         case TAGS:
-        return t::CF_TAG;
+            return t::CF_TAG;
         default: return t::CF_NONE;
     }
 }
 
 void ProcessEmbedMode(CFFile* F) {
+    LangTemp *temp = LangTemp::GetLangTemp(F->Language);
     for (CFCode& code : F->Codes) {
         hl.startpos = code.StartPos;
         hl.endpos = code.EndPos;
         hl.file = strdup(F->FilePath.c_str());
-        hl.type = GetHighlightType(code);
-
-        mes.Type = MessageType::DRAW;
-        mes.Data = &hl;
+        hl.type = GetHighlightType(code,temp);
         //printf("%i \n", hl.type);
-        emb_Send_Message(&mes);
+        emb_Send_Message(MessageType::DRAW,&hl);
     }
 }
 
@@ -168,15 +194,17 @@ void CFLangInterp(CFFile *F){
     } else if (appType == AppType::Compiler) {
         ProcessCompilerMode(F);
     }
+
 }
 
 void FindTags(CFFile *F){
     bool IsTag = false;
+
     for (CFCode& code : F->Codes) {
-        if(GetCodeFromKeyword(code.Content) == BasicCodeTypes::TAGSYMBOL){
+        if(F->LanguageTemplate->GetCodeFromKeyword(code.Content) == BasicCodeTypes::TAGSYMBOL){
             code.CodeType = BasicCodeTypes::TAGSYMBOL;
             IsTag = true;
-        }else if(IsTag && GetCodeFromKeyword(code.Content) == BasicCodeTypes::TAGS){
+        }else if(IsTag && F->LanguageTemplate->GetCodeFromKeyword(code.Content) == BasicCodeTypes::TAGS){
             code.CodeType = BasicCodeTypes::TAGS;
             IsTag = false;
         }else{
