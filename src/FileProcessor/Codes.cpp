@@ -8,17 +8,16 @@
 
 vector<LangTemp> LangTemp::Templates = {};
 
-vector<char> OtherAcceptableCodeChar = {'_'};
-
 LangTemp *LangTemp::NewLangTemp(const string& langname){
     //check if Language already exist
     LangTemp *temp = LangTemp::GetLangTemp(langname);
     if(temp != nullptr){
-        return temp;//exist
-    };
+        //exist so we override it
+        LangTemp::RemoveLangTemp(langname);
+    }
 
     LangTemp::Templates.emplace_back();
-    temp = &LangTemp::Templates[LangTemp::Templates.size()-1];
+    temp = &LangTemp::Templates.back();
     temp->LangName = langname;
 
     return temp;
@@ -27,12 +26,24 @@ LangTemp *LangTemp::NewLangTemp(const string& langname){
 LangTemp *LangTemp::GetLangTemp(const string& langname){
     for(LangTemp &temp: LangTemp::Templates){
         if (temp.LangName == langname) {
-            //printf("template found for %s\n", langname.c_str());
+            // printf("template found for %s\n", langname.c_str());
             return &temp;
         }
     }
-    //printf("template not found for %s\n", langname.c_str());
+    // printf("template not found for %s\n", langname.c_str());
     return nullptr;
+}
+
+void LangTemp::RemoveLangTemp(const string& langname){
+    unsigned int num = 0;
+    for(LangTemp &temp: LangTemp::Templates){
+        if (temp.LangName == langname) {
+            //printf("template found for %s\n", langname.c_str());
+            Templates.erase(Templates.begin() + num);
+            return;
+        }
+        num++;
+    }
 }
 
 string& LangTemp::GetMultilineCommentEndSym(){
@@ -44,7 +55,7 @@ bool LangTemp::IsAcceptableCodeNameChar(char c){
         return true;
     }else if(IsNumberChar(c)){
         return true;
-    }else if(CharVecContains(OtherAcceptableCodeChar, c)){
+    }else if(CharVecContains(AcceptableCharInName, c)){
         return true;
     }
     return false;
@@ -58,6 +69,10 @@ bool LangTemp::IsAcceptatbleNumByteChar(char c){
     }
 
     return false;
+}
+
+void LangTemp::AddAcceptableCharInName(char c){
+    AcceptableCharInName.push_back(c);
 }
 
 void LangTemp::AddCFCode(const string &Keyword, unsigned short Code){

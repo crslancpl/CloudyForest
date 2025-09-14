@@ -20,16 +20,24 @@ public:
     void TokenizeCodes(char c);
     void TokenizeTemplate(char c);
 private:
-    int CurrentLine = 0;
-    int CurrentReadingPos = 0;
+    int CurrentLine = 1;
+    int CurrentLineCharPos = 1;// the position in the line
+    int CurrentReadingPos = 0;// the position in the whole file
+
     int CodeStartPos = 0;
     int CodeEndPos = 0;
-    int CodeLine = 0;
+
+    int CodeStartLine = 0, CodeStartLinePos = 0;
+    int CodeEndLine = 0, CodeEndLinePos = 0;
     string CurrentCode;
     BasicCodeTypes CodeType;
     bool isEscapeNext = false;
 
+    void MarkTokenStart();
+    void MarkTokenEnd(int difference);
+    // difference move the ending pos forward or backward from the current pos
     int PushSymbol();
+
 
     // State processing methods
     bool ProcessCurrentState(char c);

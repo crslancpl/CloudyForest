@@ -17,7 +17,6 @@
 
 /*
  * Project
- *
  */
 enum class ProjectNote{
     NONE,TAG,NAME,VERSION,DESCRIPTION,LANGUAGE,TEMPLATE,ENTRYFILE
@@ -51,7 +50,7 @@ void CFProjectInterp(CFFile *F){
                 currentNote = ProjectNote::NONE;
                 break;
             case ProjectNote::ENTRYFILE:
-                ProcessFile(GetDir() + code.Content, F->Language,CFFileType::SourceCode);
+                ProcessFile(GetDir() + code.Content, F->Language ,CFFileType::SourceCode);
                 currentNote = ProjectNote::NONE;
                 break;
             default:
@@ -63,18 +62,16 @@ void CFProjectInterp(CFFile *F){
 
 /*
  * Template
- *
  */
 enum class TemplateNote{
     OTHER, TYPE, DEF, KEYWORD, SINGCMT, MULTCMTSTART, MULTCMTEND,
-    FUNCTION, NEWTYPE, NEWFUNC, TAGSYMBOL, TAGS, TEXTSYMBOL, VALUE
+    FUNCTION, NEWTYPE, NEWFUNC, TAGSYMBOL, TAGS, TEXTSYMBOL, VALUE,
+    ACCEPTCHARINNAME
 };
 
 void CFTemplateInterp(CFFile* F){
-    TemplateNote currentNote = TemplateNote::OTHER;
-
     // Map directive strings to note types
-    std::unordered_map<std::string, TemplateNote> directiveMap = {
+    static std::unordered_map<std::string, TemplateNote> directiveMap = {
         {"#Type", TemplateNote::TYPE},
         {"#Keyword", TemplateNote::KEYWORD},
         {"#SLCmt", TemplateNote::SINGCMT},
@@ -87,11 +84,12 @@ void CFTemplateInterp(CFFile* F){
         {"#TagSymbol", TemplateNote::TAGSYMBOL},
         {"#Tags", TemplateNote::TAGS},
         {"#TextSymbol", TemplateNote::TEXTSYMBOL},
-        {"#Value", TemplateNote::VALUE}
+        {"#Value", TemplateNote::VALUE},
+        {"#AcceptCharInName", TemplateNote::ACCEPTCHARINNAME}
     };
 
     // Map note types to their corresponding BasicCodeTypes
-    std::unordered_map<TemplateNote, BasicCodeTypes> noteToCodeType = {
+    static std::unordered_map<TemplateNote, BasicCodeTypes> noteToCodeType = {
         {TemplateNote::TYPE, BasicCodeTypes::TYPE},
         {TemplateNote::KEYWORD, BasicCodeTypes::KEYWORD},
         {TemplateNote::SINGCMT, BasicCodeTypes::SINGLELINECOMMENT},
@@ -102,6 +100,8 @@ void CFTemplateInterp(CFFile* F){
         {TemplateNote::TEXTSYMBOL, BasicCodeTypes::STRING},
         {TemplateNote::VALUE, BasicCodeTypes::VALUE}
     };
+
+    TemplateNote currentNote = TemplateNote::OTHER;
     LangTemp *temp = LangTemp::NewLangTemp(F->Language);
 
     for (CFCode& code : F->Codes) {
@@ -117,6 +117,11 @@ void CFTemplateInterp(CFFile* F){
             continue;
         }
 
+        if (currentNote == TemplateNote::ACCEPTCHARINNAME) {
+            temp->AddAcceptableCharInName(code.Content[0]);
+            continue;
+        }
+
         // Skip unknown directives and variables
         if (StartWith(code.Content, "{") && EndWith(code.Content, "}")) {
             currentNote = TemplateNote::OTHER;
@@ -126,8 +131,9 @@ void CFTemplateInterp(CFFile* F){
         // Process content based on current note
         auto codeIt = noteToCodeType.find(currentNote);
         if (codeIt != noteToCodeType.end()){
-            //printf("%s %i\n", code.Content.c_str(), codeIt->second);
             temp->AddCFCode(code.Content, codeIt->second);
+        }else {
+            // printf("unknown\n");
         }
     }
 }
@@ -135,7 +141,6 @@ void CFTemplateInterp(CFFile* F){
 
 
 /*
- *
  * normal
  */
 
@@ -143,12 +148,13 @@ Highlight hl;
 
 void ProcessCompilerMode(CFFile* F) {
     LangTemp *temp = LangTemp::GetLangTemp(F->Language);
+
     for (CFCode& code : F->Codes) {
         int keywordType = temp->GetCodeFromKeyword(code.Content);
 
-        printf("%s%i ", code.Content.c_str(), code.CodeType);
+        //printf("code: %s type: %i line %i pos: %i\n", code.Content.c_str(), code.CodeType, code.StartLine, code.StartLinePos);
     }
-    printf("\n");
+    //printf("\n");
 }
 
 t GetHighlightType(const CFCode& code, LangTemp* temp) {
@@ -167,6 +173,8 @@ t GetHighlightType(const CFCode& code, LangTemp* temp) {
         case TAGSYMBOL:
         case TAGS:
             return t::CF_TAG;
+        case CHAR: return CF_CHAR;
+        case NEWLINE: return CF_NEWLINE;
         default: return t::CF_NONE;
     }
 }
@@ -176,6 +184,13 @@ void ProcessEmbedMode(CFFile* F) {
     for (CFCode& code : F->Codes) {
         hl.startpos = code.StartPos;
         hl.endpos = code.EndPos;
+
+        hl.startline = code.StartLine;
+        hl.startlinepos = code.StartLinePos;
+        hl.endline = code.EndLine;
+        hl.endlinepos = code.EndLinePos;
+        hl.textlength = code.TextLength;
+
         hl.file = strdup(F->FilePath.c_str());
         hl.type = GetHighlightType(code,temp);
         //printf("%i \n", hl.type);

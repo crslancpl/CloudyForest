@@ -14,7 +14,7 @@ using namespace std;
 enum BasicCodeTypes: int{
     NONE, SINGLELINECOMMENT, MULTILINECOMMENTSTART, MULTILINECOMMENTEND, MULTILINECOMMENT,
     TYPE, NUM, BYTE, STRING, KEYWORD, CHAR, NORMALCODE, FUNCTION,
-    TAGS, TAGSYMBOL, VALUE
+    TAGS, TAGSYMBOL, VALUE, NEWLINE
 };
 
 class LangTemp{
@@ -23,7 +23,9 @@ class LangTemp{
     static vector<LangTemp> Templates;
     static LangTemp* GetLangTemp(const string& langname);//null if not loaded
     static LangTemp* NewLangTemp(const string& langname);//create new langtemp in Templates
+    static void RemoveLangTemp(const string& langname);//remove the langtemp in Templates
 
+    vector<char> AcceptableCharInName;
 
     string LangName;
     bool TrimSpecialChar = true; //default true
@@ -33,6 +35,7 @@ class LangTemp{
     map< string, int> CharKeywords;//special characters
 
     string& GetMultilineCommentEndSym();
+    void AddAcceptableCharInName(char c);
     void AddCFCode(const string &Keyword, unsigned short Code);
     void AddCustKeyword(const string &Code , const string &Keyword);
     int GetCodeFromKeyword(const string &Keyword);

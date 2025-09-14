@@ -21,9 +21,12 @@ enum class CFFileType{
 
 class CFCode{
     public:
-    int StartPos;
-    int EndPos;
-    int Line;
+    unsigned int StartPos, EndPos;
+
+    unsigned int StartLine, StartLinePos;
+    unsigned int EndLine, EndLinePos;
+    unsigned int TextLength;
+
     int IntCode;
     BasicCodeTypes CodeType;
     string Content;

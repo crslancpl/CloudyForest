@@ -17,7 +17,9 @@
 
 
 bool Tokenizer::TokenizeFile(CFFile* f, LangTemp* temp){
-    //
+    /*
+     * Convert the whole text to tokens (individual symbols)
+     */
     FileToRead = f;
 
     Template = temp;
@@ -27,9 +29,9 @@ bool Tokenizer::TokenizeFile(CFFile* f, LangTemp* temp){
         while (f->FileContent.get(c)) {
             TokenizeTemplate(c);
         }
-        TokenizeTemplate(c);
+        TokenizeTemplate(0);
     }else{
-        //printf("template language %s\n", Template->LangName.c_str());
+        TrimSpecialChar = temp->TrimSpecialChar;
         while (f->FileContent.get(c)) {
             TokenizeCodes(c);
         }
@@ -40,7 +42,7 @@ bool Tokenizer::TokenizeFile(CFFile* f, LangTemp* temp){
 }
 
 void Tokenizer::TokenizeTemplate(char c){
-    if(c == ' ' || c == '\t' || c == '\n'){
+    if(c == ' ' || c == '\t' || c == '\n' || c =='\r'){
         if(!CurrentCode.empty()){
             CFCode code;
             code.CodeType = NORMALCODE;
@@ -54,28 +56,35 @@ void Tokenizer::TokenizeTemplate(char c){
 }
 
 void Tokenizer::TokenizeCodes(char c){
-    // Transfer the whole file into symbols and words
+    /*
+     * Transfer the whole file into symbols and words
+     */
+
     CurrentReadingPos++;// started from 1
 
     // Handle end of file
     if (c == 0) {
-        CodeEndPos = CurrentReadingPos - 1;
+        MarkTokenEnd(0);
         PushSymbol();
         return;
     }
 
+    if (ProcessCurrentState(c)) {
+        // Process character based on current state
+    }else{
+        // Handle new characters when not in a specific state
+        ProcessNewCharacter(c);
+    }
+
+
+
     // Track line numbers
     if(c == '\n'){
         CurrentLine++;
+        CurrentLineCharPos = 1;// started from 1
+    }else{
+        CurrentLineCharPos++;
     }
-
-    // Process character based on current state
-    if (ProcessCurrentState(c)) {
-        return;
-    }
-
-    // Handle new characters when not in a specific state
-    ProcessNewCharacter(c);
 }
 
 bool Tokenizer::ProcessCurrentState(char c) {
@@ -99,9 +108,9 @@ bool Tokenizer::ProcessCurrentState(char c) {
 
 bool Tokenizer::ProcessSingleLineComment(char c) {
     if(c == '\n'){
-        CodeEndPos = CurrentReadingPos - 1;
+        MarkTokenEnd(-1);
         PushSymbol();
-        CodeType = BasicCodeTypes::NONE;
+        CodeType = BasicCodeTypes::NEWLINE;
         ProcessNewline(c);
     } else {
         CurrentCode += c;
@@ -112,7 +121,7 @@ bool Tokenizer::ProcessSingleLineComment(char c) {
 bool Tokenizer::ProcessMultiLineComment(char c) {
     CurrentCode += c;
     if(EndWith(CurrentCode, Template->GetMultilineCommentEndSym())){
-        CodeEndPos = CurrentReadingPos;
+        MarkTokenEnd(0);
         PushSymbol();
         CodeType = BasicCodeTypes::NONE;
     }
@@ -129,7 +138,7 @@ bool Tokenizer::ProcessTextState(char c) {
         if(isEscapeNext){
             isEscapeNext = false;
         } else {
-            CodeEndPos = CurrentReadingPos;
+            MarkTokenEnd(0);
             PushSymbol();
         }
     } else {
@@ -172,7 +181,7 @@ bool Tokenizer::ProcessCharState(char c) {
             CodeType = BasicCodeTypes::STRING;
             ProcessTextState(c);
         } else {
-            CodeEndPos = CurrentReadingPos - 1;
+            MarkTokenEnd(-1);
             PushSymbol();
             ProcessNewCharacter(c);
         }
@@ -187,7 +196,7 @@ void Tokenizer::ProcessNewCharacter(char c) {
         ProcessWhitespace();
     } else if(IsNumberChar(c)){
         ProcessNumberStart(c);
-    } else if(IsAlphabetChar(c)){
+    } else if(Template->IsAcceptableCodeNameChar(c)){
         ProcessAlphabetStart(c);
     } else {
         ProcessSpecialChar(c);
@@ -195,56 +204,76 @@ void Tokenizer::ProcessNewCharacter(char c) {
 }
 
 void Tokenizer::ProcessNewline(char c) {
-    CodeEndPos = CurrentReadingPos - 1;
+    MarkTokenEnd(-1);
     PushSymbol();
-    CodeStartPos = CurrentReadingPos;
+    MarkTokenStart();
     CurrentCode += c;
-    CodeEndPos = CurrentReadingPos;
+    MarkTokenEnd(0);
     PushSymbol();
 }
 
 void Tokenizer::ProcessWhitespace() {
-    CodeEndPos = CurrentReadingPos - 1;
+    MarkTokenEnd(0);
     PushSymbol();
 }
 
 void Tokenizer::ProcessNumberStart(char c) {
     CurrentCode += c;
     CodeType = BasicCodeTypes::NUM;
-    CodeStartPos = CurrentReadingPos;
+    MarkTokenStart();
 }
 
 void Tokenizer::ProcessAlphabetStart(char c) {
     CurrentCode += c;
     CodeType = BasicCodeTypes::NORMALCODE;
-    CodeStartPos = CurrentReadingPos;
+    MarkTokenStart();
 }
 
 void Tokenizer::ProcessSpecialChar(char c) {
     if(TrimSpecialChar){
-        CodeEndPos = CurrentReadingPos - 1;
+        MarkTokenEnd(-1);
         PushSymbol();
         CodeType = BasicCodeTypes::CHAR;
         CurrentCode += c;
-        CodeStartPos = CurrentReadingPos;
+        MarkTokenStart();
     } else {
         CurrentCode += c;
-        CodeStartPos = CurrentReadingPos;
+        MarkTokenStart();
     }
 }
 
+void Tokenizer::MarkTokenStart(){
+    CodeStartPos = CurrentReadingPos;
+    CodeStartLine = CurrentLine;
+    CodeStartLinePos = CurrentLineCharPos;
+}
+void Tokenizer::MarkTokenEnd(int difference){
+    CodeEndPos = CurrentReadingPos + difference;
+    CodeEndLine = CurrentLine;
+    CodeEndLinePos = CurrentLineCharPos;
+}
 
 int Tokenizer::PushSymbol(){
     if(! CurrentCode.empty()){
+
         int intcode = Template->GetCodeFromKeyword(CurrentCode);
 
         //cout << (int)intcode << " "<<CurrentCode <<endl;
         CFCode Code;
         Code.IntCode = intcode;
         Code.Content = CurrentCode;
+        Code.CodeType = CodeType;
+
+        //Get position form absolute position
         Code.StartPos = CodeStartPos;
         Code.EndPos = CodeEndPos;
-        Code.CodeType = CodeType;
+
+        //Get position from line and relative position
+        Code.StartLine = CodeStartLine;
+        Code.StartLinePos = CodeStartLinePos;
+        Code.EndLine = CodeEndLine;
+        Code.EndLinePos = CodeEndLinePos;
+        Code.TextLength = CurrentCode.length();
 
         //printf("%s %i", Code.Content.c_str(), intcode);
 

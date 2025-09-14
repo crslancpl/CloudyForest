@@ -19,9 +19,9 @@ void ClearProcessedFile(){
 void ProcessFile(const string &filepath,const string &lang, CFFileType filetype){
     if(CheckIfProcessed(filepath)){
         // Processed
-        printf("%s processed\n", filepath.c_str());
         return;
     }
+    printf("processing %s\n", filepath.c_str());
     shared_ptr<CFFile> cf = make_shared<CFFile>();
     ProcessedFile.push_back(cf);
     cf->Language = lang;
@@ -63,9 +63,6 @@ void CFFile::Read(){
             CFProjectInterp(this);
             break;
         case CFFileType::Template:
-            if(LangTemp::GetLangTemp(this->Language) != nullptr){
-                return;
-            }
             tokenizer.TokenizeFile(this,nullptr);
             CFTemplateInterp(this);
             break;
