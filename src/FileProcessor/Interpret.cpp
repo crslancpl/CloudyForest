@@ -66,7 +66,7 @@ void CFProjectInterp(CFFile *F){
 enum class TemplateNote{
     OTHER, TYPE, DEF, KEYWORD, SINGCMT, MULTCMTSTART, MULTCMTEND,
     FUNCTION, NEWTYPE, NEWFUNC, TAGSYMBOL, TAGS, TEXTSYMBOL, VALUE,
-    ACCEPTCHARINNAME
+    ACCEPTCHARINNAME, AREAMODIFIER, MODIFIER
 };
 
 void CFTemplateInterp(CFFile* F){
@@ -74,6 +74,8 @@ void CFTemplateInterp(CFFile* F){
     static std::unordered_map<std::string, TemplateNote> directiveMap = {
         {"#Type", TemplateNote::TYPE},
         {"#Keyword", TemplateNote::KEYWORD},
+        {"#AreaModifier", TemplateNote::AREAMODIFIER},
+        {"#Modifier", TemplateNote::MODIFIER},
         {"#SLCmt", TemplateNote::SINGCMT},
         {"#MLCmtS", TemplateNote::MULTCMTSTART},
         {"#MLCmtE", TemplateNote::MULTCMTEND},
@@ -92,6 +94,8 @@ void CFTemplateInterp(CFFile* F){
     static std::unordered_map<TemplateNote, BasicCodeTypes> noteToCodeType = {
         {TemplateNote::TYPE, BasicCodeTypes::TYPE},
         {TemplateNote::KEYWORD, BasicCodeTypes::KEYWORD},
+        {TemplateNote::MODIFIER, BasicCodeTypes::MODIFIER},
+        {TemplateNote::AREAMODIFIER, BasicCodeTypes::AREAMODIFIER},
         {TemplateNote::SINGCMT, BasicCodeTypes::SINGLELINECOMMENT},
         {TemplateNote::MULTCMTSTART, BasicCodeTypes::MULTILINECOMMENTSTART},
         {TemplateNote::MULTCMTEND, BasicCodeTypes::MULTILINECOMMENTEND},
@@ -132,6 +136,7 @@ void CFTemplateInterp(CFFile* F){
         auto codeIt = noteToCodeType.find(currentNote);
         if (codeIt != noteToCodeType.end()){
             temp->AddCFCode(code.Content, codeIt->second);
+            //printf("%s %i\n", code.Content.c_str(), codeIt->second);
         }else {
             // printf("unknown\n");
         }
@@ -162,6 +167,7 @@ t GetHighlightType(const CFCode& code, LangTemp* temp) {
     if (keywordType == TYPE) return t::CF_TYPE;
     if (keywordType == KEYWORD) return t::CF_KEYWORD;
     if (keywordType == VALUE) return t::CF_VALUE;
+    if (keywordType == MODIFIER || keywordType == AREAMODIFIER) return t::CF_MODIFIER;
 
 
     switch (code.CodeType) {
@@ -201,6 +207,7 @@ void ProcessEmbedMode(CFFile* F) {
 void CFLangInterp(CFFile *F){
     AppType appType = GetAppType();
     FindTags(F);
+    FindNewVar(F);
     //FindNewType(F);
     FindFunction(F);
 
@@ -210,6 +217,10 @@ void CFLangInterp(CFFile *F){
         ProcessCompilerMode(F);
     }
 
+}
+
+void FindNewVar(CFFile *F){
+    // not implemented
 }
 
 void FindTags(CFFile *F){

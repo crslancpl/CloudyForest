@@ -12,6 +12,8 @@ void CFTemplateInterp(CFFile *F);
 
 void CFLangInterp(CFFile *F);
 
+void FindNewVar(CFFile *F);
+
 void FindTags(CFFile *F);
 
 void FindNewType(CFFile *F);
