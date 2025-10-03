@@ -149,7 +149,7 @@ void CFTemplateInterp(CFFile* F){
  * normal
  */
 
-Highlight hl;
+cf_Highlight_msg hl;
 
 void ProcessCompilerMode(CFFile* F) {
     LangTemp *temp = LangTemp::GetLangTemp(F->Language);
@@ -162,26 +162,26 @@ void ProcessCompilerMode(CFFile* F) {
     //printf("\n");
 }
 
-t GetHighlightType(const CFCode& code, LangTemp* temp) {
+cf_HLType GetHighlightType(const CFCode& code, LangTemp* temp) {
     int keywordType = temp->GetCodeFromKeyword(code.Content);
-    if (keywordType == TYPE) return t::CF_TYPE;
-    if (keywordType == KEYWORD) return t::CF_KEYWORD;
-    if (keywordType == VALUE) return t::CF_VALUE;
-    if (keywordType == MODIFIER || keywordType == AREAMODIFIER) return t::CF_MODIFIER;
+    if (keywordType == TYPE) return cf_HLType::CF_TYPE;
+    if (keywordType == KEYWORD) return cf_HLType::CF_KEYWORD;
+    if (keywordType == VALUE) return cf_HLType::CF_VALUE;
+    if (keywordType == MODIFIER || keywordType == AREAMODIFIER) return cf_HLType::CF_MODIFIER;
 
 
     switch (code.CodeType) {
-        case MULTILINECOMMENT: return t::CF_MULTCMT;
-        case SINGLELINECOMMENT: return t::CF_SINGCMT;
-        case STRING: return t::CF_TEXT;
-        case FUNCTION: return t::CF_FUNCTIONNAME;
-        case NUM: return t::CF_VALUE;
+        case MULTILINECOMMENT: return cf_HLType::CF_MULTCMT;
+        case SINGLELINECOMMENT: return cf_HLType::CF_SINGCMT;
+        case STRING: return cf_HLType::CF_TEXT;
+        case FUNCTION: return cf_HLType::CF_FUNCTIONNAME;
+        case NUM: return cf_HLType::CF_VALUE;
         case TAGSYMBOL:
         case TAGS:
-            return t::CF_TAG;
+            return cf_HLType::CF_TAG;
         case CHAR: return CF_CHAR;
         case NEWLINE: return CF_NEWLINE;
-        default: return t::CF_NONE;
+        default: return cf_HLType::CF_NONE;
     }
 }
 
@@ -200,7 +200,7 @@ void ProcessEmbedMode(CFFile* F) {
         hl.file = strdup(F->FilePath.c_str());
         hl.type = GetHighlightType(code,temp);
         //printf("%i \n", hl.type);
-        emb_Send_Message(MessageType::DRAW,&hl);
+        cf_Post_Message(cf_MessageType::DRAW,&hl);
     }
 }
 

@@ -21,7 +21,7 @@ void ProcessFile(const string &filepath,const string &lang, CFFileType filetype)
         // Processed
         return;
     }
-    printf("processing %s\n", filepath.c_str());
+    //printf("processing %s\n", filepath.c_str());
     shared_ptr<CFFile> cf = make_shared<CFFile>();
     ProcessedFile.push_back(cf);
     cf->Language = lang;

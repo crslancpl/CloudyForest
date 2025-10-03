@@ -1,6 +1,30 @@
 #include "Tools.h"
 
 #include <algorithm>
+#include <cstdio>
+
+
+void (*output)(const string &text);
+
+void StandradOutput(const string &text){
+    printf("%s\n",text.c_str());
+}
+
+void Output(const string &text){
+    if(output == nullptr){
+        return;
+    }else {
+        output(text);
+    }
+}
+
+void SetOutput(bool OnOff){
+    if(OnOff){
+        output = StandradOutput;
+    }else{
+        output = nullptr;
+    }
+}
 
 bool StringVecContains(const vector<string> &list, const string &item) {
   return find(list.begin(), list.end(), item) != list.end();

@@ -12,7 +12,7 @@ using namespace std;
 void (*ReqFileFun)(const char *filepath);
 
 void RequestFile(const char *filepath){
-    printf("requesting %s\n", filepath);
+    //printf("requesting %s\n", filepath);
     ReqFileFun(filepath);
 }
 
@@ -29,7 +29,7 @@ void ReqLocalFile(const char *filepath){
 }
 
 void RespondFile(const string &filepath,const string &content, bool ispath){
-    printf("responded %s\n", filepath.c_str());
+    // printf("responded %s\n", filepath.c_str());
     shared_ptr<CFFile> f = FindCFFile(filepath);
     ReadContent( f, content, ispath);
     f->Read();

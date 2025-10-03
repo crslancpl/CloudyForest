@@ -7,9 +7,11 @@
 
 using namespace std;
 
+void Output(const string &text);
+void SetOutput(bool OnOff);
+
 bool StringVecContains(const vector<string> &list, const string &item);
 bool CharVecContains(const vector<char> &list, const char &item);
-
 
 vector<string> TrimText(const string &Text, const string &Saperator);
 
