@@ -8,12 +8,12 @@
 
 #include <cstdio>
 #include <memory>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <string.h>
 #include <unordered_map>
 #include <functional>
-
 
 /*
  * Project
@@ -31,7 +31,7 @@ void CFProjectInterp(CFFile *F){
         {"#Name", [&]() { currentNote = ProjectNote::NAME; }},
         {"#Version", [&]() { currentNote = ProjectNote::VERSION; }},
         {"#Language", [&]() { currentNote = ProjectNote::LANGUAGE; }},
-        {"#EntryFile", [&]() { currentNote = ProjectNote::ENTRYFILE; }},
+        {"#EntryFile", [&]() { currentNote = ProjectNote::ENTRYFILE; }}
     };
 
     for (CFCode& code : F->Codes) {
@@ -66,7 +66,7 @@ void CFProjectInterp(CFFile *F){
 enum class TemplateNote{
     OTHER, TYPE, DEF, KEYWORD, SINGCMT, MULTCMTSTART, MULTCMTEND,
     FUNCTION, NEWTYPE, NEWFUNC, TAGSYMBOL, TAGS, TEXTSYMBOL, VALUE,
-    ACCEPTCHARINNAME, AREAMODIFIER, MODIFIER
+    ACCEPTCHARINNAME, AREAMODIFIER, MODIFIER, LANGUAGESERVER
 };
 
 void CFTemplateInterp(CFFile* F){
@@ -87,7 +87,8 @@ void CFTemplateInterp(CFFile* F){
         {"#Tags", TemplateNote::TAGS},
         {"#TextSymbol", TemplateNote::TEXTSYMBOL},
         {"#Value", TemplateNote::VALUE},
-        {"#AcceptCharInName", TemplateNote::ACCEPTCHARINNAME}
+        {"#AcceptCharInName", TemplateNote::ACCEPTCHARINNAME},
+        {"#LanguageServer", TemplateNote::LANGUAGESERVER}
     };
 
     // Map note types to their corresponding BasicCodeTypes
@@ -114,6 +115,7 @@ void CFTemplateInterp(CFFile* F){
             temp->TrimSpecialChar = true;
             continue;
         }
+
         // Check if it's a directive
         auto dirIt = directiveMap.find(code.Content);
         if (dirIt != directiveMap.end()) {
@@ -123,6 +125,16 @@ void CFTemplateInterp(CFFile* F){
 
         if (currentNote == TemplateNote::ACCEPTCHARINNAME) {
             temp->AddAcceptableCharInName(code.Content[0]);
+            continue;
+        }
+
+        if(currentNote == TemplateNote::LANGUAGESERVER){
+            cf_LanguageServer_msg msg;
+            auto ServerOptionPair = TrimText(code.Content, ":");
+            msg.LanguageServerCommand = strdup(ServerOptionPair[0].c_str());
+            msg.CommandOption = strdup(ServerOptionPair[1].c_str());
+
+            cf_Send_Message(cf_MessageType::LANGUAGESERVER, &msg);
             continue;
         }
 
@@ -164,11 +176,12 @@ void ProcessCompilerMode(CFFile* F) {
 
 cf_HLType GetHighlightType(const CFCode& code, LangTemp* temp) {
     int keywordType = temp->GetCodeFromKeyword(code.Content);
-    if (keywordType == TYPE) return cf_HLType::CF_TYPE;
-    if (keywordType == KEYWORD) return cf_HLType::CF_KEYWORD;
-    if (keywordType == VALUE) return cf_HLType::CF_VALUE;
-    if (keywordType == MODIFIER || keywordType == AREAMODIFIER) return cf_HLType::CF_MODIFIER;
-
+    if(code.CodeType == NORMALCODE){
+        if (keywordType == TYPE) return cf_HLType::CF_TYPE;
+        if (keywordType == KEYWORD) return cf_HLType::CF_KEYWORD;
+        if (keywordType == VALUE) return cf_HLType::CF_VALUE;
+        if (keywordType == MODIFIER || keywordType == AREAMODIFIER) return cf_HLType::CF_MODIFIER;
+    }
 
     switch (code.CodeType) {
         case MULTILINECOMMENT: return cf_HLType::CF_MULTCMT;
@@ -230,10 +243,8 @@ void FindTags(CFFile *F){
         if(F->LanguageTemplate->GetCodeFromKeyword(code.Content) == BasicCodeTypes::TAGSYMBOL){
             code.CodeType = BasicCodeTypes::TAGSYMBOL;
             IsTag = true;
-        }else if(IsTag && F->LanguageTemplate->GetCodeFromKeyword(code.Content) == BasicCodeTypes::TAGS){
+        }else if(IsTag){
             code.CodeType = BasicCodeTypes::TAGS;
-            IsTag = false;
-        }else{
             IsTag = false;
         }
     }

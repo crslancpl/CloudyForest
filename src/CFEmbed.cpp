@@ -24,7 +24,7 @@ void cf_Send_Message(cf_MessageType type, void* data){
         LoadLangTemplate(langname);
     }else if(type == cf_MessageType::ENTRYFILE){
         cf_Entry_msg* e = (cf_Entry_msg*)(data);
-        ProcessFile(e->FileName,e->language, CFFileType::SourceCode);
+        ProcessFile(e->FileName,e->Language, CFFileType::SourceCode);
     }else if(type == cf_MessageType::RELOAD){
         Reload();
     }else if(type == cf_MessageType::TOGGLEOUTPUT){

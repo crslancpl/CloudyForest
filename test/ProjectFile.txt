@@ -1,5 +1,6 @@
 #Name Test
 #Version 1.0.0
+#LanguageServer
 #Description "This is a sample project file."
 #Template cpp
 #EntryFile T1.txt
